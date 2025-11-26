@@ -1,0 +1,164 @@
+2025-11-18 12:42:28.07
+0bc0a292
+User
+at DatabaseStorage.createMenuItem (file:///home/runner/workspace/dist/index.js:440:75)
+2025-11-18 12:42:28.07
+0bc0a292
+User
+[CSV Import Confirm] Error creating item 2 : TypeError: menuItemData.allergens.split is not a function
+2025-11-18 12:42:28.07
+0bc0a292
+User
+at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+2025-11-18 12:42:28.07
+0bc0a292
+User
+[CSV Import Confirm] Error creating item 4 : TypeError: menuItemData.allergens.split is not a function
+2025-11-18 12:42:28.07
+0bc0a292
+User
+at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+2025-11-18 12:42:28.07
+0bc0a292
+User
+at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+2025-11-18 12:42:28.07
+0bc0a292
+User
+at file:///home/runner/workspace/dist/index.js:2572:41
+2025-11-18 12:42:28.07
+0bc0a292
+User
+at file:///home/runner/workspace/dist/index.js:2572:41
+2025-11-18 12:42:28.07
+0bc0a292
+User
+at DatabaseStorage.createMenuItem (file:///home/runner/workspace/dist/index.js:440:75)
+2025-11-18 12:42:28.07
+0bc0a292
+User
+[CSV Import Confirm] Error creating item 8 : TypeError: menuItemData.allergens.split is not a function
+2025-11-18 12:42:28.07
+0bc0a292
+User
+at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+2025-11-18 12:42:28.07
+0bc0a292
+User
+at file:///home/runner/workspace/dist/index.js:2572:41
+2025-11-18 12:42:28.07
+0bc0a292
+User
+[CSV Import Confirm] Error creating item 6 : TypeError: menuItemData.allergens.split is not a function
+2025-11-18 12:42:28.07
+0bc0a292
+User
+at DatabaseStorage.createMenuItem (file:///home/runner/workspace/dist/index.js:440:75)
+2025-11-18 12:42:28.07
+0bc0a292
+User
+at file:///home/runner/workspace/dist/index.js:2572:41
+2025-11-18 12:42:28.07
+0bc0a292
+User
+at file:///home/runner/workspace/dist/index.js:2572:41
+2025-11-18 12:42:28.07
+0bc0a292
+User
+at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+2025-11-18 12:42:28.07
+0bc0a292
+User
+at DatabaseStorage.createMenuItem (file:///home/runner/workspace/dist/index.js:440:75)
+2025-11-18 12:42:28.07
+0bc0a292
+User
+at DatabaseStorage.createMenuItem (file:///home/runner/workspace/dist/index.js:440:75)
+2025-11-18 12:42:28.07
+0bc0a292
+User
+[CSV Import Confirm] Error creating item 7 : TypeError: menuItemData.allergens.split is not a function
+2025-11-18 12:42:28.07
+0bc0a292
+User
+[CSV Import Confirm] Error creating item 10 : TypeError: menuItemData.allergens.split is not a function
+2025-11-18 12:42:28.07
+0bc0a292
+User
+[CSV Import Confirm] Error creating item 5 : TypeError: menuItemData.allergens.split is not a function
+2025-11-18 12:42:28.07
+0bc0a292
+User
+at file:///home/runner/workspace/dist/index.js:2572:41
+2025-11-18 12:42:28.07
+0bc0a292
+User
+at DatabaseStorage.createMenuItem (file:///home/runner/workspace/dist/index.js:440:75)
+2025-11-18 12:42:28.07
+0bc0a292
+User
+at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+2025-11-18 12:42:28.07
+0bc0a292
+User
+[CSV Import Confirm] Error creating item 9 : TypeError: menuItemData.allergens.split is not a function
+2025-11-18 12:42:28.07
+0bc0a292
+User
+at DatabaseStorage.createMenuItem (file:///home/runner/workspace/dist/index.js:440:75)
+2025-11-18 12:42:28.07
+0bc0a292
+User
+at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+2025-11-18 12:42:28.07
+0bc0a292
+User
+at DatabaseStorage.createMenuItem (file:///home/runner/workspace/dist/index.js:440:75)
+2025-11-18 12:42:28.07
+0bc0a292
+User
+at DatabaseStorage.createMenuItem (file:///home/runner/workspace/dist/index.js:440:75)
+2025-11-18 12:42:28.07
+0bc0a292
+User
+at file:///home/runner/workspace/dist/index.js:2572:41
+2025-11-18 12:42:28.07
+0bc0a292
+User
+[CSV Import Confirm] Error creating item 13 : TypeError: menuItemData.allergens.split is not a function
+2025-11-18 12:42:28.07
+0bc0a292
+User
+at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+2025-11-18 12:42:28.07
+0bc0a292
+User
+at DatabaseStorage.createMenuItem (file:///home/runner/workspace/dist/index.js:440:75)
+2025-11-18 12:42:28.07
+0bc0a292
+User
+at file:///home/runner/workspace/dist/index.js:2572:41
+2025-11-18 12:42:28.07
+0bc0a292
+User
+at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+2025-11-18 12:42:28.07
+0bc0a292
+User
+at DatabaseStorage.createMenuItem (file:///home/runner/workspace/dist/index.js:440:75)
+2025-11-18 12:42:28.07
+0bc0a292
+User
+at file:///home/runner/workspace/dist/index.js:2572:41
+2025-11-18 12:42:28.07
+0bc0a292
+User
+at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+2025-11-18 12:42:28.07
+0bc0a292
+User
+at DatabaseStorage.createMenuItem (file:///home/runner/workspace/dist/index.js:440:75)
+2025-11-18 12:42:28.07
+0bc0a292
+User
+at DatabaseStorage.createMenuItem (file:///home/runner/workspace/dist/index.js:440:75)
