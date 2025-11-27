@@ -1,5 +1,5 @@
 import type { Language } from './translations';
-import { CURRENCY_LOCALES } from '@/../../shared/currencyMapping';
+import { CURRENCY_LOCALES } from '@/shared/currencyMapping';
 
 // Currency code mapping based on language/region (DEPRECATED - use explicit currency code instead)
 // Only used as fallback when no explicit currency is provided
