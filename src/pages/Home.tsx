@@ -216,8 +216,8 @@ export default function Home() {
             <Card className="p-8 shadow-card-hover glass-card group relative overflow-hidden">
               <div className="absolute inset-0 bg-gradient-to-br from-chart-2/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
               <div className="relative z-10">
-                <div className="h-16 w-16 rounded-xl bg-gradient-to-br from-chart-2 to-chart-2/60 flex items-center justify-center mb-6 shadow-glow group-hover:scale-110 transition-transform duration-300">
-                  <Languages className="h-8 w-8 text-white" />
+                <div className="h-16 w-16 rounded-xl bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center mb-6 shadow-glow group-hover:scale-110 transition-transform duration-300">
+                   <Languages className="h-8 w-8 text-primary-foreground" />
                 </div>
                 <h3 className="font-bold text-xl mb-3 group-hover:text-chart-2 transition-colors">10 Languages</h3>
                 <p className="text-muted-foreground leading-relaxed">
