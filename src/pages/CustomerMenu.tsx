@@ -17,7 +17,7 @@ import { ReceiptDialog } from "@/components/ReceiptDialog";
 import { CallWaiterButton } from "@/components/CallWaiterButton";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { AlertCircle, Menu, ShoppingBag, EarOff, Globe, Hand } from "lucide-react";
+import { AlertCircle, Menu, ShoppingBag, EarOff, Globe, Hand, Bot } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger, DropdownMenuItem, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import type { Restaurant, MenuItem } from "@/shared/schema";
@@ -359,10 +359,52 @@ function CustomerMenuContent() {
     return (
       <div className="min-h-screen bg-background">
         <div className="max-w-7xl mx-auto px-4 py-8">
-          <Skeleton className="h-64 w-full mb-8" />
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {/* Restaurant header skeleton */}
+          <div className="relative mb-8 overflow-hidden rounded-xl">
+            <Skeleton className="h-64 w-full pulse-enhanced" />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
+            <div className="absolute bottom-6 left-6 right-6">
+              <Skeleton className="h-8 w-3/4 mb-2 pulse-enhanced" />
+              <Skeleton className="h-4 w-1/2 pulse-enhanced" />
+            </div>
+          </div>
+          
+          {/* Menu navigation skeleton */}
+          <div className="mb-8">
+            <div className="flex items-center justify-between mb-4">
+              <Skeleton className="h-6 w-20 pulse-enhanced" />
+              <div className="flex gap-2">
+                <Skeleton className="h-10 w-24 pulse-enhanced" />
+                <Skeleton className="h-10 w-24 pulse-enhanced" />
+                <Skeleton className="h-10 w-24 pulse-enhanced" />
+              </div>
+            </div>
+            <div className="flex gap-2">
+              {[1, 2, 3, 4].map((i) => (
+                <Skeleton key={i} className="h-8 w-20 pulse-enhanced" />
+              ))}
+            </div>
+          </div>
+          
+          {/* Menu items skeleton */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {[1, 2, 3, 4, 5, 6].map((i) => (
-              <Skeleton key={i} className="h-80 w-full" />
+              <div key={i} className="glass-card rounded-lg overflow-hidden">
+                <Skeleton className="h-48 w-full pulse-enhanced" />
+                <div className="p-6">
+                  <div className="flex justify-between items-start mb-3">
+                    <Skeleton className="h-6 w-3/4 pulse-enhanced" />
+                    <Skeleton className="h-6 w-16 pulse-enhanced" />
+                  </div>
+                  <Skeleton className="h-4 w-full mb-2 pulse-enhanced" />
+                  <Skeleton className="h-4 w-2/3 mb-4 pulse-enhanced" />
+                  <div className="flex gap-2 mb-4">
+                    <Skeleton className="h-6 w-16 pulse-enhanced" />
+                    <Skeleton className="h-6 w-20 pulse-enhanced" />
+                  </div>
+                  <Skeleton className="h-10 w-full pulse-enhanced" />
+                </div>
+              </div>
             ))}
           </div>
         </div>
@@ -396,16 +438,17 @@ function CustomerMenuContent() {
         hours={restaurant.hours || ""}
       />
 
-      <div className="sticky top-0 z-40 bg-background border-b">
+      <div className="sticky top-0 z-40 glass backdrop-blur-md border-b">
         <div className="max-w-7xl mx-auto px-4 py-4">
           <div className="flex items-center justify-between gap-4 mb-4">
-            <h2 className="text-xl font-semibold">{t('menu')}</h2>
+            <h2 className="text-xl font-semibold gradient-text">{t('menu')}</h2>
             <div className="flex items-center gap-2">
               <LanguageSelector />
-              <CallWaiterButton 
-                restaurantId={restaurantId || ''} 
+              <CallWaiterButton
+                restaurantId={restaurantId || ''}
                 tableId={tableId || undefined}
                 variant="outline"
+                className="hover-lift"
               />
               <CartDrawer
                 items={cartItems.map(item => ({
@@ -430,29 +473,41 @@ function CustomerMenuContent() {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 py-8">
+      <div className="max-w-7xl mx-auto px-4 py-8 relative">
+        <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-chart-2/5 pointer-events-none"></div>
         {filteredItems.length === 0 ? (
-          <div className="text-center py-12">
-            <p className="text-muted-foreground">No menu items available in this category.</p>
+          <div className="text-center py-20 relative z-10">
+            <div className="max-w-md mx-auto">
+              <div className="w-24 h-24 mx-auto mb-6 bg-gradient-to-br from-muted to-muted/50 rounded-full flex items-center justify-center">
+                <Bot className="h-12 w-12 text-muted-foreground" />
+              </div>
+              <h3 className="text-lg font-semibold mb-2">No Items Available</h3>
+              <p className="text-muted-foreground">No menu items available in this category at the moment.</p>
+            </div>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredItems.map((item) => (
-              <MenuItemCard
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 relative z-10">
+            {filteredItems.map((item, index) => (
+              <div
                 key={item.id}
-                name={item.name}
-                description={item.description}
-                price={parseFloat(item.price as any)}
-                image={item.imageUrl || restaurantImg}
-                spiceLevel={item.spiceLevel ? parseInt(item.spiceLevel) : undefined}
-                isVegan={item.isVegan}
-                isVegetarian={item.isVegetarian}
-                isHalal={item.isHalal}
-                isKosher={item.isKosher}
-                allergens={item.allergens || []}
-                onAddToCart={() => addToCart(item)}
-                onClick={() => setSelectedItem(item)}
-              />
+                className="bounce-in"
+                style={{ animationDelay: `${index * 0.1}s` }}
+              >
+                <MenuItemCard
+                  name={item.name}
+                  description={item.description}
+                  price={parseFloat(item.price as any)}
+                  image={item.imageUrl || restaurantImg}
+                  spiceLevel={item.spiceLevel ? parseInt(item.spiceLevel) : undefined}
+                  isVegan={item.isVegan}
+                  isVegetarian={item.isVegetarian}
+                  isHalal={item.isHalal}
+                  isKosher={item.isKosher}
+                  allergens={item.allergens || []}
+                  onAddToCart={() => addToCart(item)}
+                  onClick={() => setSelectedItem(item)}
+                />
+              </div>
             ))}
           </div>
         )}
