@@ -230,9 +230,10 @@ export default function Home() {
             <Card className="p-8 shadow-card-hover glass-card group relative overflow-hidden">
               <div className="absolute inset-0 bg-gradient-to-br from-chart-3/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
               <div className="relative z-10">
-                <div className="h-16 w-16 rounded-xl bg-gradient-to-br from-chart-3 to-chart-3/60 flex items-center justify-center mb-6 shadow-glow group-hover:scale-110 transition-transform duration-300">
-                  <Zap className="h-8 w-8 text-white" />
+                <div className="h-16 w-16 rounded-xl bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center mb-6 shadow-glow group-hover:scale-110 transition-transform duration-300">
+                  <Zap className="h-8 w-8 text-primary-foreground" />
                 </div>
+
                 <h3 className="font-bold text-xl mb-3 group-hover:text-chart-3 transition-colors">Smart Knowledge System</h3>
                 <p className="text-muted-foreground leading-relaxed">
                   AI learns from chef responses. Questions get automatically added to the knowledge base,
@@ -244,9 +245,10 @@ export default function Home() {
             <Card className="p-8 shadow-card-hover glass-card group relative overflow-hidden">
               <div className="absolute inset-0 bg-gradient-to-br from-chart-4/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
               <div className="relative z-10">
-                <div className="h-16 w-16 rounded-xl bg-gradient-to-br from-chart-4 to-chart-4/60 flex items-center justify-center mb-6 shadow-glow group-hover:scale-110 transition-transform duration-300">
-                  <QrCode className="h-8 w-8 text-white" />
+                <div className="h-16 w-16 rounded-xl bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center mb-6 shadow-glow group-hover:scale-110 transition-transform duration-300">
+                  <QrCode className="h-8 w-8 text-primary-foreground" />
                 </div>
+
                 <h3 className="font-bold text-xl mb-3 group-hover:text-chart-4 transition-colors">QR Code Menus</h3>
                 <p className="text-muted-foreground leading-relaxed">
                   Generate unique QR codes for your restaurant. Customers scan and order instantly from their phones.
@@ -260,6 +262,7 @@ export default function Home() {
                 <div className="h-16 w-16 rounded-xl bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center mb-6 shadow-glow group-hover:scale-110 transition-transform duration-300">
                   <CreditCard className="h-8 w-8 text-primary-foreground" />
                 </div>
+
                 <h3 className="font-bold text-xl mb-3 group-hover:text-primary transition-colors">Global Payments</h3>
                 <p className="text-muted-foreground leading-relaxed">
                   Accept payments via Stripe, Paystack, or Adyen. Support for multiple currencies and payment methods worldwide.
@@ -270,9 +273,10 @@ export default function Home() {
             <Card className="p-8 shadow-card-hover glass-card group relative overflow-hidden">
               <div className="absolute inset-0 bg-gradient-to-br from-chart-5/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
               <div className="relative z-10">
-                <div className="h-16 w-16 rounded-xl bg-gradient-to-br from-chart-5 to-chart-5/60 flex items-center justify-center mb-6 shadow-glow group-hover:scale-110 transition-transform duration-300">
-                  <BarChart3 className="h-8 w-8 text-white" />
+                <div className="h-16 w-16 rounded-xl bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center mb-6 shadow-glow group-hover:scale-110 transition-transform duration-300">
+                  <BarChart3 className="h-8 w-8 text-primary-foreground" />
                 </div>
+
                 <h3 className="font-bold text-xl mb-3 group-hover:text-chart-5 transition-colors">Real-Time Management</h3>
                 <p className="text-muted-foreground leading-relaxed">
                   Track all orders in real-time. Answer customer questions via voice, manage menus, and monitor sales instantly.
