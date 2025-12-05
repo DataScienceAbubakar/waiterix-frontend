@@ -182,7 +182,7 @@ export default function Home() {
               className="hover-lift glass-card text-lg px-8 py-6"
             >
               <Bot className="mr-2 h-5 w-5" />
-              Harmonia Kitchen Demo
+              View Demo Menu
             </Button>
           </div>
           <p className="text-sm text-muted-foreground mt-6 pulse-enhanced">
