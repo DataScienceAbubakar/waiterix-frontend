@@ -5,8 +5,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-import { Bot, QrCode, Store, CreditCard, Smartphone, BarChart3, Shield, Mic, Languages, Zap, Check, Loader2 } from "lucide-react";
+import { Bot, QrCode, Store, CreditCard, Smartphone, BarChart3, Shield, Mic, Languages, Zap, Check, Loader2, TrendingUp, Target, Star } from "lucide-react";
 import logoUrl from "@/assets/waiterix-logo.png";
+import { AnimatedGauge } from "@/components/AnimatedGauge";
 import { Link, useLocation } from "wouter";
 import { signInWithGoogle, signInWithEmail, signUpWithEmail } from "@/lib/firebase";
 import { useAuth } from "@/hooks/useAuth";
@@ -49,7 +50,7 @@ export default function Home() {
 
   const handleEmailAuth = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!email || !password) {
       toast({
         title: "Missing information",
@@ -70,7 +71,7 @@ export default function Home() {
 
     try {
       setIsAuthenticating(true);
-      
+
       if (authMode === 'signup') {
         await signUpWithEmail(email, password, displayName || undefined);
         toast({
@@ -84,14 +85,14 @@ export default function Home() {
           description: "Welcome back! Redirecting to dashboard...",
         });
       }
-      
+
       setShowAuthDialog(false);
       setEmail('');
       setPassword('');
       setDisplayName('');
     } catch (error: any) {
       let errorMessage = "Authentication failed";
-      
+
       if (error.code === 'auth/email-already-in-use') {
         errorMessage = "Email already in use. Try signing in instead.";
       } else if (error.code === 'auth/invalid-email') {
@@ -103,7 +104,7 @@ export default function Home() {
       } else if (error.code === 'auth/invalid-credential') {
         errorMessage = "Invalid email or password";
       }
-      
+
       toast({
         title: "Authentication failed",
         description: errorMessage,
@@ -135,7 +136,14 @@ export default function Home() {
           <div className="flex items-center gap-2">
             <ThemeToggle />
             <Button
-              onClick={() => setShowAuthDialog(true)}
+              variant="ghost"
+              onClick={() => { setAuthMode('signin'); setShowAuthDialog(true); }}
+              data-testid="button-sign-in"
+            >
+              Sign In
+            </Button>
+            <Button
+              onClick={() => { setAuthMode('signup'); setShowAuthDialog(true); }}
               data-testid="button-get-started"
               className="btn-glow shadow-glow hover-lift"
             >
@@ -150,12 +158,11 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-4 text-center relative z-10">
           <div className="bounce-in">
             <h1 className="text-4xl md:text-6xl font-bold mb-6 text-shadow">
-              AI-Powered Voice Ordering for <span className="gradient-text">Modern Restaurants</span>
+              AI-powered systems built for <span className="gradient-text">modern restaurants</span>
             </h1>
           </div>
           <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto smooth-transition hover:text-foreground/80">
-            Your customers speak, our AI Waiter listens. Natural voice conversations in 10 languages,
-            instant menu recommendations, and seamless ordering—all powered by advanced AI technology.
+            Reduce operations cost, increase efficiency and improve customer satisfaction
           </p>
           <div className="flex gap-4 justify-center flex-wrap">
             <Button
@@ -165,7 +172,7 @@ export default function Home() {
               className="btn-glow shadow-glow hover-lift text-lg px-8 py-6"
             >
               <Zap className="mr-2 h-5 w-5" />
-              Get Started Now
+              Try Waiterix
             </Button>
             <Button
               size="lg"
@@ -175,28 +182,81 @@ export default function Home() {
               className="hover-lift glass-card text-lg px-8 py-6"
             >
               <Bot className="mr-2 h-5 w-5" />
-              View Demo Menu
+              Harmonia Kitchen Demo
             </Button>
           </div>
           <p className="text-sm text-muted-foreground mt-6 pulse-enhanced">
-            ✨ 30-day money-back guarantee • No setup fees • Start in minutes
+            ✨ 90-days risk-free trial • Plus, Complimentary QR-Code Display Tags
           </p>
         </div>
-        
+
         {/* Floating decorative elements */}
         <div className="absolute top-20 left-10 w-20 h-20 bg-primary/10 rounded-full blur-xl float"></div>
         <div className="absolute top-40 right-20 w-32 h-32 bg-chart-2/10 rounded-full blur-xl float-delayed"></div>
         <div className="absolute bottom-20 left-1/4 w-16 h-16 bg-chart-3/10 rounded-full blur-xl float"></div>
       </section>
 
+      {/* Why Waiterix Section */}
       <section className="py-20 bg-gradient-to-br from-muted/30 via-background to-muted/50 relative">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,hsl(var(--primary)/0.1),transparent_50%)]"></div>
         <div className="max-w-7xl mx-auto px-4 relative z-10">
           <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4 gradient-text">Revolutionary Features</h2>
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Discover the cutting-edge technology that's transforming restaurant experiences worldwide
-            </p>
+            <h2 className="text-3xl md:text-4xl font-bold mb-4 gradient-text">Why Waiterix?</h2>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
+            <Card className="p-8 shadow-card-hover glass-card group relative overflow-hidden">
+              <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+              <div className="relative z-10 flex flex-col items-center">
+                <AnimatedGauge value={40} label="" color="hsl(var(--primary))" />
+                <h3 className="font-bold text-xl mb-3 mt-4 text-center">Reduction in Labor Cost</h3>
+                <p className="text-muted-foreground text-center leading-relaxed">
+                  Waiterix automates core waiter tasks, helping restaurants cut nearly half of their front-of-house labor expenses.
+                </p>
+              </div>
+            </Card>
+
+            <Card className="p-8 shadow-card-hover glass-card group relative overflow-hidden">
+              <div className="absolute inset-0 bg-gradient-to-br from-chart-2/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+              <div className="relative z-10 flex flex-col items-center">
+                <AnimatedGauge value={100} label="" color="hsl(var(--chart-2))" />
+                <h3 className="font-bold text-xl mb-3 mt-4 text-center">Ensure Accuracy</h3>
+                <p className="text-muted-foreground text-center leading-relaxed">
+                  Our end-to-end AI ordering system eliminates order errors and reduces bottlenecks for smoother operations.
+                </p>
+              </div>
+            </Card>
+
+            <Card className="p-8 shadow-card-hover glass-card group relative overflow-hidden">
+              <div className="absolute inset-0 bg-gradient-to-br from-chart-3/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+              <div className="relative z-10 flex flex-col items-center">
+                <AnimatedGauge value={25} label="" color="hsl(var(--chart-3))" />
+                <h3 className="font-bold text-xl mb-3 mt-4 text-center">Increases Check Sizes</h3>
+                <p className="text-muted-foreground text-center leading-relaxed">
+                  The AI waiter excels at upselling and cross-selling, boosting average check sizes and overall revenue.
+                </p>
+              </div>
+            </Card>
+
+            <Card className="p-8 shadow-card-hover glass-card group relative overflow-hidden">
+              <div className="absolute inset-0 bg-gradient-to-br from-chart-4/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+              <div className="relative z-10 flex flex-col items-center">
+                <AnimatedGauge value={5} maxValue={5} label="" suffix="★" color="hsl(var(--chart-4))" />
+                <h3 className="font-bold text-xl mb-3 mt-4 text-center">Boost Customer Satisfaction</h3>
+                <p className="text-muted-foreground text-center leading-relaxed">
+                  Fast, accurate, and personalized service ensures customers enjoy a smoother and more satisfying dining experience.
+                </p>
+              </div>
+            </Card>
+          </div>
+        </div>
+      </section>
+
+      {/* Features Section */}
+      <section className="py-20 bg-background relative">
+        <div className="max-w-7xl mx-auto px-4 relative z-10">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl md:text-4xl font-bold mb-4 gradient-text">Features</h2>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             <Card className="p-8 shadow-card-hover glass-card group relative overflow-hidden">
@@ -217,7 +277,7 @@ export default function Home() {
               <div className="absolute inset-0 bg-gradient-to-br from-chart-2/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
               <div className="relative z-10">
                 <div className="h-16 w-16 rounded-xl bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center mb-6 shadow-glow group-hover:scale-110 transition-transform duration-300">
-                   <Languages className="h-8 w-8 text-primary-foreground" />
+                  <Languages className="h-8 w-8 text-primary-foreground" />
                 </div>
                 <h3 className="font-bold text-xl mb-3 group-hover:text-chart-2 transition-colors">10 Languages</h3>
                 <p className="text-muted-foreground leading-relaxed">
@@ -293,7 +353,7 @@ export default function Home() {
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-bold mb-4 gradient-text">Simple, Transparent Pricing</h2>
             <p className="text-xl text-muted-foreground">
-              Full refund if you're not satisfied within 30 days
+              Full refund if you're not satisfied within 90 days
             </p>
           </div>
 
@@ -312,7 +372,7 @@ export default function Home() {
                     <span className="text-muted-foreground text-xl">/month</span>
                   </div>
                   <div className="inline-block bg-gradient-to-r from-primary/20 to-chart-2/20 text-primary px-4 py-2 rounded-full text-sm font-medium border border-primary/30 shimmer">
-                    ✨ 30-Day Money-Back Guarantee
+                    ✨ 90-Day Money-Back Guarantee
                   </div>
                 </div>
                 <ul className="space-y-4 mb-10">
@@ -390,7 +450,7 @@ export default function Home() {
           <p className="text-xl md:text-2xl text-muted-foreground mb-12 leading-relaxed">
             Join restaurants worldwide using AI-powered voice ordering to serve customers better.
             <br className="hidden md:block" />
-            Try risk-free with our 30-day money-back guarantee.
+            Try risk-free with our 90-day money-back guarantee.
           </p>
           <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
             <Button
@@ -404,24 +464,34 @@ export default function Home() {
             </Button>
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <Shield className="h-4 w-4 text-primary" />
-              <span>30-day guarantee • No setup fees • Cancel anytime</span>
+              <span>90-day guarantee • No setup fees • Cancel anytime</span>
             </div>
           </div>
         </div>
       </section>
 
-      <footer className="border-t py-8">
-        <div className="max-w-7xl mx-auto px-4 text-center">
-          <div className="flex justify-center gap-6 mb-4 text-sm">
-            <Link href="/terms" className="text-muted-foreground hover:text-foreground" data-testid="link-terms">
-              Terms & Conditions
-            </Link>
-            <span className="text-muted-foreground">•</span>
-            <Link href="/privacy" className="text-muted-foreground hover:text-foreground" data-testid="link-privacy">
-              Privacy Policy
-            </Link>
+      <footer className="border-t py-12 bg-muted/30">
+        <div className="max-w-7xl mx-auto px-4">
+          {/* Legal Disclaimer */}
+          <div className="max-w-4xl mx-auto mb-8">
+            <p className="text-xs text-muted-foreground text-center leading-relaxed">
+              All information, services, products, and content on this website are provided for general informational purposes only and should not be considered professional advice. No rights or guarantees can be derived from the content on this site, and use of the website is governed by our Terms of Use. Reported results are based on either extrapolation or feedback from individual clients and may vary from one restaurant to another.
+            </p>
           </div>
-          <p className="text-sm text-muted-foreground">© 2025 Waiterix. All rights reserved.</p>
+
+          {/* Footer Links */}
+          <div className="text-center">
+            <div className="flex justify-center gap-6 mb-4 text-sm">
+              <Link href="/terms" className="text-muted-foreground hover:text-foreground" data-testid="link-terms">
+                Terms & Conditions
+              </Link>
+              <span className="text-muted-foreground">•</span>
+              <Link href="/privacy" className="text-muted-foreground hover:text-foreground" data-testid="link-privacy">
+                Privacy Policy
+              </Link>
+            </div>
+            <p className="text-sm text-muted-foreground">© 2025 Waiterix. All rights reserved.</p>
+          </div>
         </div>
       </footer>
 
@@ -430,8 +500,8 @@ export default function Home() {
           <DialogHeader>
             <DialogTitle>{authMode === 'signin' ? 'Sign In' : 'Create Account'}</DialogTitle>
             <DialogDescription>
-              {authMode === 'signin' 
-                ? 'Welcome back! Sign in to access your restaurant dashboard.' 
+              {authMode === 'signin'
+                ? 'Welcome back! Sign in to access your restaurant dashboard.'
                 : 'Join Waiterix to start serving customers with AI-powered voice ordering.'}
             </DialogDescription>
           </DialogHeader>
@@ -448,10 +518,10 @@ export default function Home() {
                 <Loader2 className="h-4 w-4 animate-spin mr-2" />
               ) : (
                 <svg className="h-4 w-4 mr-2" viewBox="0 0 24 24">
-                  <path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-                  <path fill="currentColor" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-                  <path fill="currentColor" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
-                  <path fill="currentColor" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                  <path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+                  <path fill="currentColor" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+                  <path fill="currentColor" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
+                  <path fill="currentColor" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
                 </svg>
               )}
               Continue with Google
