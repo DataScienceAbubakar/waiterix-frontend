@@ -3,6 +3,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -48,8 +49,11 @@ export function MenuItemDialog({
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{item.name}</DialogTitle>
+          <DialogDescription className="sr-only">
+            Details and customization options for {item.name}
+          </DialogDescription>
         </DialogHeader>
-        
+
         <div className="space-y-4">
           <div className="aspect-video overflow-hidden rounded-lg">
             <img

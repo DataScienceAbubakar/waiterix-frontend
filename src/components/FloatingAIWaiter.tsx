@@ -189,9 +189,19 @@ export const FloatingAIWaiter = forwardRef<FloatingAIWaiterRef, FloatingAIWaiter
 
     // WebSocket connection to receive chef answers
     useEffect(() => {
-      const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+      let wsBaseUrl = (import.meta as any).env.VITE_WEBSOCKET_URL;
+
+      if (!wsBaseUrl) {
+        if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+          wsBaseUrl = 'ws://localhost:3006';
+        } else {
+          console.warn('[FloatingAIWaiter] VITE_WEBSOCKET_URL not configured. WebSocket disabled.');
+          return;
+        }
+      }
+
       const ws = new WebSocket(
-        `${protocol}//${window.location.host}/ws?restaurantId=${restaurantId}&customerSessionId=${customerSessionIdRef.current}`
+        `${wsBaseUrl}?restaurantId=${restaurantId}&customerSessionId=${customerSessionIdRef.current}`
       );
 
       ws.onopen = () => {
