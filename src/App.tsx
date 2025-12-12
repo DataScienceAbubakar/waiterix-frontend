@@ -28,6 +28,7 @@ function Router() {
       <Route path="/admin" component={AdminPage} />
       <Route path="/subscribe" component={Subscribe} />
       <Route path="/subscribe/success" component={SubscribeSuccess} />
+      <Route path="/subscribe/success/" component={SubscribeSuccess} />
       <Route path="/terms" component={Terms} />
       <Route component={NotFound} />
     </Switch>
