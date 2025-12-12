@@ -63,7 +63,7 @@ export function useContinuousSpeechRecognition({
   // Wake word detection patterns - case insensitive
   const detectWakeWord = useCallback((text: string): boolean => {
     const normalizedText = text.toLowerCase().trim();
-    
+
     const wakeWordPatterns = [
       'hey waiterix',
       'hey waitrix',
@@ -72,7 +72,7 @@ export function useContinuousSpeechRecognition({
       'waiterix',
       'waitrix',
     ];
-    
+
     return wakeWordPatterns.some(pattern => normalizedText.includes(pattern));
   }, []);
 
@@ -81,7 +81,7 @@ export function useContinuousSpeechRecognition({
 
     try {
       const SpeechRecognitionAPI = window.SpeechRecognition || window.webkitSpeechRecognition;
-      
+
       if (!recognitionRef.current) {
         recognitionRef.current = new SpeechRecognitionAPI();
         recognitionRef.current.continuous = true;
@@ -99,7 +99,7 @@ export function useContinuousSpeechRecognition({
           for (let i = event.resultIndex; i < event.results.length; i++) {
             const transcript = event.results[i][0].transcript;
             console.log('[Wake Word] Heard:', transcript, '(final:', event.results[i].isFinal, ')');
-            
+
             if (detectWakeWord(transcript)) {
               console.log('[Wake Word] Wake word detected!');
               onWakeWordDetected();
@@ -110,7 +110,7 @@ export function useContinuousSpeechRecognition({
 
         recognitionRef.current.onerror = (event: SpeechRecognitionErrorEvent) => {
           console.warn('[Wake Word] Recognition error:', event.error);
-          
+
           // Handle specific errors
           if (event.error === 'not-allowed' || event.error === 'service-not-allowed') {
             console.error('[Wake Word] Microphone permission denied');
@@ -118,12 +118,12 @@ export function useContinuousSpeechRecognition({
             setIsListening(false);
             return;
           }
-          
+
           // For 'no-speech' or other transient errors, debounce restart
           if (event.error === 'no-speech' || event.error === 'audio-capture') {
             const now = Date.now();
             const timeSinceLastRestart = now - lastRestartTimeRef.current;
-            
+
             // Only restart if it's been at least 3 seconds since last restart
             if (timeSinceLastRestart > 3000 && isEnabledRef.current && !isUserStoppedRef.current) {
               console.log('[Wake Word] Will restart after error in 2 seconds...');
@@ -143,17 +143,17 @@ export function useContinuousSpeechRecognition({
 
         recognitionRef.current.onend = () => {
           console.log('[Wake Word] Recognition ended, user stopped:', isUserStoppedRef.current);
-          
+
           // Only set listening to false if user actually stopped it
           if (isUserStoppedRef.current) {
             setIsListening(false);
             return;
           }
-          
+
           // Auto-restart if still enabled and not user-stopped (debounced)
           const now = Date.now();
           const timeSinceLastRestart = now - lastRestartTimeRef.current;
-          
+
           if (isEnabledRef.current && !isUserStoppedRef.current && timeSinceLastRestart > 1000) {
             console.log('[Wake Word] Auto-restarting after normal end...');
             lastRestartTimeRef.current = now;
@@ -176,7 +176,17 @@ export function useContinuousSpeechRecognition({
         return;
       }
 
-      recognitionRef.current.start();
+      try {
+        recognitionRef.current.start();
+      } catch (err: any) {
+        // Ignore "already started" errors
+        if (err.name === 'InvalidStateError' || err.message?.includes('already started')) {
+          console.log('[Wake Word] Recognition already started, ignoring start request');
+          setIsListening(true);
+        } else {
+          throw err;
+        }
+      }
     } catch (error) {
       console.error('[Wake Word] Failed to start recognition:', error);
       setIsListening(false);
@@ -186,7 +196,7 @@ export function useContinuousSpeechRecognition({
   const stopListening = useCallback(() => {
     console.log('[Wake Word] User-initiated stop');
     isUserStoppedRef.current = true;
-    
+
     if (restartTimeoutRef.current) {
       clearTimeout(restartTimeoutRef.current);
       restartTimeoutRef.current = null;
@@ -199,7 +209,7 @@ export function useContinuousSpeechRecognition({
         console.warn('[Wake Word] Error stopping recognition:', error);
       }
     }
-    
+
     setIsListening(false);
   }, []);
 
