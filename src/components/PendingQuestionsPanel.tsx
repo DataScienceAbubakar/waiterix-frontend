@@ -44,8 +44,17 @@ export function PendingQuestionsPanel({ restaurantId }: { restaurantId: string }
   useEffect(() => {
     if (!user) return;
 
-    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    const ws = new WebSocket(`${protocol}//${window.location.host}/ws?restaurantId=${restaurantId}&role=chef`);
+    let wsBaseUrl = (import.meta as any).env.VITE_WEBSOCKET_URL;
+
+    if (!wsBaseUrl) {
+      if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+        wsBaseUrl = 'ws://localhost:3006';
+      } else {
+        return; // WebSocket disabled in production if VITE_WEBSOCKET_URL not set
+      }
+    }
+
+    const ws = new WebSocket(`${wsBaseUrl}?restaurantId=${restaurantId}&role=chef`);
 
     ws.onopen = () => {
       console.log('WebSocket connected for chef');
