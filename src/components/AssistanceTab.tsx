@@ -12,20 +12,20 @@ import type { AssistanceRequestWithTable } from "@/shared/schema";
 // Audio notification
 const playNotificationSound = () => {
   const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
-  
+
   // Create two-tone chime
   const oscillator1 = audioContext.createOscillator();
   const oscillator2 = audioContext.createOscillator();
   const gainNode = audioContext.createGain();
-  
+
   oscillator1.connect(gainNode);
   oscillator2.connect(gainNode);
   gainNode.connect(audioContext.destination);
-  
+
   oscillator1.frequency.value = 800; // First tone
   oscillator2.frequency.value = 1000; // Second tone
   gainNode.gain.value = 0.3;
-  
+
   const now = audioContext.currentTime;
   oscillator1.start(now);
   oscillator1.stop(now + 0.2);
@@ -45,7 +45,7 @@ export function AssistanceTab() {
   });
 
   // Construct URL with query parameter
-  const queryUrl = filter === 'all' 
+  const queryUrl = filter === 'all'
     ? '/api/assistance-requests'
     : `/api/assistance-requests?status=${filter}`;
 
@@ -60,21 +60,36 @@ export function AssistanceTab() {
       return; // Don't connect until we have restaurant ID
     }
 
-    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    const wsUrl = `${protocol}//${window.location.host}/ws?restaurantId=${restaurant.id}&role=chef`;
-    
+    // Determine WebSocket URL
+    // 1. Prefer explicit VITE_WS_URL from environment
+    // 2. Fallback to localhost:3006 for local development (serverless-offline default)
+    // 3. In production, do not attempt to connect to the frontend host (Amplify)
+
+    let wsBaseUrl = (import.meta as any).env.VITE_WS_URL;
+
+    if (!wsBaseUrl) {
+      if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+        wsBaseUrl = 'ws://localhost:3006';
+      } else {
+        console.warn('[AssistanceTab] VITE_WS_URL not configured. WebSocket disabled (polling only).');
+        return;
+      }
+    }
+
+    const wsUrl = `${wsBaseUrl}?restaurantId=${restaurant.id}&role=chef`;
+
     const ws = new WebSocket(wsUrl);
 
     ws.onopen = () => {
       console.log('WebSocket connected to assistance requests');
     };
-    
+
     ws.onmessage = (event) => {
       try {
         const message = JSON.parse(event.data);
         if (message.type === 'new-assistance-request') {
           // Invalidate all assistance-requests queries to refresh the list
-          queryClient.invalidateQueries({ 
+          queryClient.invalidateQueries({
             predicate: (query) => {
               const key = query.queryKey[0] as string;
               return key?.startsWith('/api/assistance-requests');
@@ -125,7 +140,7 @@ export function AssistanceTab() {
     },
     onSuccess: () => {
       // Invalidate all assistance-requests queries to refresh the list
-      queryClient.invalidateQueries({ 
+      queryClient.invalidateQueries({
         predicate: (query) => {
           const key = query.queryKey[0] as string;
           return key?.startsWith('/api/assistance-requests');
@@ -203,8 +218,8 @@ export function AssistanceTab() {
           <Bell className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
           <h3 className="text-lg font-semibold mb-2">No Assistance Requests</h3>
           <p className="text-muted-foreground">
-            {filter === 'pending' 
-              ? "No pending requests at the moment" 
+            {filter === 'pending'
+              ? "No pending requests at the moment"
               : "No assistance requests found"}
           </p>
         </Card>
@@ -220,8 +235,8 @@ export function AssistanceTab() {
                         request.status === 'pending'
                           ? 'bg-yellow-500'
                           : request.status === 'acknowledged'
-                          ? 'bg-blue-500'
-                          : 'bg-green-500'
+                            ? 'bg-blue-500'
+                            : 'bg-green-500'
                       }
                       data-testid={`badge-status-${request.id}`}
                     >
