@@ -430,9 +430,22 @@ export const FloatingAIWaiter = forwardRef<FloatingAIWaiterRef, FloatingAIWaiter
         const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
         console.log('Microphone access granted');
 
-        const mediaRecorder = new MediaRecorder(stream, {
-          mimeType: 'audio/webm',
-        });
+        // Detect supported mime type
+        const mimeType = [
+          'audio/webm',
+          'audio/webm;codecs=opus',
+          'audio/mp4',
+          'audio/ogg',
+          'audio/wav'
+        ].find(type => MediaRecorder.isTypeSupported(type)) || '';
+
+        if (!mimeType) {
+          console.warn('No supported audio mime type found, letting browser decide defaults');
+        }
+
+        const mediaRecorder = new MediaRecorder(stream, mimeType ? { mimeType } : undefined);
+        const actualMimeType = mediaRecorder.mimeType; // Get what browser actually used
+        console.log('Using mimeType:', actualMimeType);
 
         audioChunksRef.current = [];
 
@@ -448,12 +461,19 @@ export const FloatingAIWaiter = forwardRef<FloatingAIWaiterRef, FloatingAIWaiter
           setStatus('processing');
           startProcessingMessages();
 
-          const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
-          console.log('Audio blob size:', audioBlob.size);
+          // Use the actual mime type used by the recorder
+          const audioBlob = new Blob(audioChunksRef.current, { type: actualMimeType });
+          console.log('Audio blob size:', audioBlob.size, 'Type:', actualMimeType);
+
+          // Determine extension based on mime type
+          let extension = 'webm';
+          if (actualMimeType.includes('mp4')) extension = 'mp4';
+          if (actualMimeType.includes('ogg')) extension = 'ogg';
+          if (actualMimeType.includes('wav')) extension = 'wav';
 
           try {
             const formData = new FormData();
-            formData.append('audio', audioBlob, 'recording.webm');
+            formData.append('audio', audioBlob, `recording.${extension}`);
             formData.append('language', language);
             formData.append('restaurantId', restaurantId);
 
