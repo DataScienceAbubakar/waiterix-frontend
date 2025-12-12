@@ -26,7 +26,8 @@ export function TermsAcceptanceModal({ open, onAccept }: TermsAcceptanceModalPro
 
   const acceptTermsMutation = useMutation({
     mutationFn: async () => {
-      const response = await fetch('/api/auth/accept-terms', {
+      const apiBaseUrl = (import.meta as any).env.VITE_API_BASE_URL || '';
+      const response = await fetch(`${apiBaseUrl}/api/auth/accept-terms`, {
         method: 'POST',
         credentials: 'include',
       });
@@ -67,7 +68,7 @@ export function TermsAcceptanceModal({ open, onAccept }: TermsAcceptanceModalPro
   };
 
   return (
-    <Dialog open={open} onOpenChange={() => {}}>
+    <Dialog open={open} onOpenChange={() => { }}>
       <DialogContent className="max-w-3xl max-h-[90vh]" data-testid="dialog-terms-acceptance">
         <DialogHeader>
           <DialogTitle className="text-2xl">Terms and Conditions</DialogTitle>
@@ -80,44 +81,44 @@ export function TermsAcceptanceModal({ open, onAccept }: TermsAcceptanceModalPro
           <div className="prose prose-sm dark:prose-invert max-w-none">
             <h3 className="font-bold mb-2">1. Acceptance of Terms</h3>
             <p className="mb-4">
-              By using Waiterix, you accept and agree to be bound by these terms. If you do not agree, 
+              By using Waiterix, you accept and agree to be bound by these terms. If you do not agree,
               please do not use our service.
             </p>
 
             <h3 className="font-bold mb-2">2. Service Description</h3>
             <p className="mb-4">
-              Waiterix provides AI-powered restaurant ordering solutions including voice assistance, 
+              Waiterix provides AI-powered restaurant ordering solutions including voice assistance,
               QR code menus, online ordering, and payment processing.
             </p>
 
             <h3 className="font-bold mb-2">3. Subscription & Money-Back Guarantee</h3>
             <p className="mb-4">
-              Waiterix costs $50/month plus AI usage costs (typically $15-20/month). 
-              If you're not satisfied within 30 days, you can request a full refund. 
+              Waiterix costs $50/month plus AI usage costs (typically $15-20/month).
+              If you're not satisfied within 30 days, you can request a full refund.
               Contact support within the guarantee period for a no-questions-asked refund.
             </p>
 
             <h3 className="font-bold mb-2">4. AI Usage</h3>
             <p className="mb-4">
-              Our AI features are powered by OpenAI. You acknowledge that AI responses may not always 
+              Our AI features are powered by OpenAI. You acknowledge that AI responses may not always
               be accurate and you are responsible for monitoring customer interactions.
             </p>
 
             <h3 className="font-bold mb-2">5. User Content</h3>
             <p className="mb-4">
-              You retain ownership of all content you upload. By using our service, you grant us 
+              You retain ownership of all content you upload. By using our service, you grant us
               a license to use, store, and process this content to provide the service.
             </p>
 
             <h3 className="font-bold mb-2">6. Account Termination</h3>
             <p className="mb-4">
-              You may permanently delete your account at any time. Upon deletion, all your data 
+              You may permanently delete your account at any time. Upon deletion, all your data
               will be permanently removed and cannot be recovered.
             </p>
 
             <h3 className="font-bold mb-2">7. Limitation of Liability</h3>
             <p className="mb-4">
-              Waiterix is provided "as is" without warranties. We are not liable for service 
+              Waiterix is provided "as is" without warranties. We are not liable for service
               interruptions, data loss, errors in AI responses, or third-party service failures.
             </p>
 
