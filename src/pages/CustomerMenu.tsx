@@ -57,8 +57,24 @@ function CustomerMenuContent() {
   const [receiptDialogOpen, setReceiptDialogOpen] = useState(false);
   const floatingAIWaiterRef = useRef<{ triggerWelcome: () => Promise<void> } | null>(null);
 
-  // Extract table ID from query params
-  const tableId = new URLSearchParams(window.location.search).get('table');
+  // Extract table Number from query params (e.g. ?table=1)
+  const tableNumber = new URLSearchParams(window.location.search).get('table');
+
+  // Fetch tables to resolve table number to UUID
+  const { data: tables = [] } = useQuery<any[]>({
+    queryKey: ['/api/public/restaurant', restaurantId, 'tables'],
+    queryFn: async () => {
+      const apiBaseUrl = (import.meta as any).env.VITE_API_BASE_URL || '';
+      const res = await fetch(`${apiBaseUrl}/api/public/restaurant/${restaurantId}/tables`);
+      if (!res.ok) return [];
+      return res.json();
+    },
+    enabled: !!restaurantId,
+  });
+
+  const activeTable = tables.find(t => t.tableNumber === tableNumber);
+  // Use the UUID if found, otherwise undefined (or fallback to number string for legacy compatibility if needed)
+  const tableId = activeTable?.id;
 
   // Check if this is the first visit for this restaurant session
   useEffect(() => {
@@ -115,17 +131,19 @@ function CustomerMenuContent() {
   // Track table scan when menu loads
   useEffect(() => {
     const trackTableScan = async () => {
+      // Only track if we have a valid restaurant and table UUID
       if (restaurantId && tableId) {
-        const hasTrackedScan = sessionStorage.getItem(`restaurant-${restaurantId}-table-${tableId}-tracked`);
+        // Use tableNumber for storage key to keep it simple/consistent with URL
+        const hasTrackedScan = sessionStorage.getItem(`restaurant-${restaurantId}-table-${tableNumber}-tracked`);
         if (!hasTrackedScan) {
           try {
             const apiBaseUrl = (import.meta as any).env.VITE_API_BASE_URL || '';
             await fetch(`${apiBaseUrl}/api/analytics/table-scan`, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ restaurantId, tableId }),
+              body: JSON.stringify({ restaurantId, tableId }), // Sending UUID
             });
-            sessionStorage.setItem(`restaurant-${restaurantId}-table-${tableId}-tracked`, 'true');
+            sessionStorage.setItem(`restaurant-${restaurantId}-table-${tableNumber}-tracked`, 'true');
           } catch (error) {
             console.error('Failed to track table scan:', error);
           }
@@ -134,7 +152,7 @@ function CustomerMenuContent() {
     };
 
     trackTableScan();
-  }, [restaurantId, tableId]);
+  }, [restaurantId, tableId, tableNumber]);
 
   // Handle payment redirect return (CashApp Pay, Afterpay, etc.)
   useEffect(() => {
