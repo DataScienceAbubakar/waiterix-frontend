@@ -53,14 +53,14 @@ export function PendingQuestionsPanel({ restaurantId }: { restaurantId: string }
 
     ws.onmessage = (event) => {
       const message = JSON.parse(event.data);
-      
+
       if (message.type === 'new-question') {
         // Refresh questions list
         queryClient.invalidateQueries({ queryKey: ['/api/chef/questions'] });
-        
+
         // Play notification sound
         NotificationSound.playChime();
-        
+
         toast({
           title: "New Question",
           description: "A customer has a question that needs your answer!",
@@ -139,14 +139,15 @@ export function PendingQuestionsPanel({ restaurantId }: { restaurantId: string }
       const formData = new FormData();
       formData.append('questionId', selectedQuestion.id);
       formData.append('language', selectedQuestion.language);
-      
+
       if (answerMode === 'voice' && audioBlob) {
         formData.append('audio', audioBlob, 'answer.webm');
       } else {
         formData.append('textAnswer', textAnswer.trim());
       }
 
-      const response = await fetch('/api/chef/answer', {
+      const apiBaseUrl = (import.meta as any).env.VITE_API_BASE_URL || '';
+      const response = await fetch(`${apiBaseUrl}/api/chef/answer`, {
         method: 'POST',
         body: formData,
         credentials: 'include',

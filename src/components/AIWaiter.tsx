@@ -17,12 +17,12 @@ type Status = 'idle' | 'listening' | 'processing' | 'responding';
 
 export function AIWaiter({ restaurantId, restaurantName, menuItems, onAddToCart }: AIWaiterProps) {
   const { t, language } = useLanguage();
-  
+
   const [hasGreeted, setHasGreeted] = useState(false);
   const [welcomeFailed, setWelcomeFailed] = useState(false);
   const [status, setStatus] = useState<Status>('idle');
   const [processingMessage, setProcessingMessage] = useState('Processing...');
-  const [conversationHistory, setConversationHistory] = useState<Array<{role: 'user' | 'assistant', content: string}>>([]);
+  const [conversationHistory, setConversationHistory] = useState<Array<{ role: 'user' | 'assistant', content: string }>>([]);
   const [responseCount, setResponseCount] = useState(0);
   const [continuousListeningEnabled, setContinuousListeningEnabled] = useState(() => {
     // Check localStorage for saved preference, default to true
@@ -47,10 +47,10 @@ export function AIWaiter({ restaurantId, restaurantName, menuItems, onAddToCart 
   const audioContextRef = useRef<AudioContext | null>(null);
   const analyserRef = useRef<AnalyserNode | null>(null);
   const sourceRef = useRef<MediaStreamAudioSourceNode | null>(null);
-  
+
   // Create personalized welcome message
   const welcomeTextRef = useRef(
-    restaurantName 
+    restaurantName
       ? `Hey there! Welcome to ${restaurantName}. I'm your AI waiter. Press this button or say "Hey Waiterix" anytime to chat about the menu or place an order. If you need a live waiter at any point, please let me know!`
       : "Hey there! I'm your AI waiter. Press this button or say 'Hey Waiterix' anytime to chat about the menu or place an order. If you need a live waiter at any point, please let me know!"
   );
@@ -76,11 +76,11 @@ export function AIWaiter({ restaurantId, restaurantName, menuItems, onAddToCart 
         setMicPermissionGranted(granted);
       }
     };
-    
+
     // Check on mount and periodically
     checkPermission();
     const interval = setInterval(checkPermission, 1000);
-    
+
     return () => clearInterval(interval);
   }, [micPermissionGranted]);
 
@@ -142,7 +142,7 @@ export function AIWaiter({ restaurantId, restaurantName, menuItems, onAddToCart 
   useEffect(() => {
     if (!hasGreeted && menuItems.length > 0) {
       setHasGreeted(true);
-      
+
       // Try to auto-play immediately (works on desktop, may fail on mobile)
       setTimeout(async () => {
         const success = await speakMessage(welcomeTextRef.current);
@@ -166,14 +166,14 @@ export function AIWaiter({ restaurantId, restaurantName, menuItems, onAddToCart 
 
     ws.onmessage = (event) => {
       const message = JSON.parse(event.data);
-      
+
       if (message.type === 'chef-answer') {
         console.log('Received chef answer:', message.data);
         const { answer } = message.data;
-        
+
         // Add the chef's answer to conversation history as an assistant message
         setConversationHistory(prev => [...prev, { role: 'assistant', content: answer }]);
-        
+
         // Speak the answer to the customer
         speakMessage(answer).catch(err => {
           console.error('Failed to speak chef answer:', err);
@@ -215,7 +215,7 @@ export function AIWaiter({ restaurantId, restaurantName, menuItems, onAddToCart 
   // Start processing messages - show "Processing..." then switch after 3 seconds
   const startProcessingMessages = () => {
     setProcessingMessage('Processing...');
-    
+
     // After 3 seconds, change to "Answer's almost ready" if still processing
     processingIntervalRef.current = setTimeout(() => {
       setProcessingMessage("Answer's almost ready");
@@ -236,14 +236,15 @@ export function AIWaiter({ restaurantId, restaurantName, menuItems, onAddToCart 
     try {
       // Try to play cached phrase instantly for immediate feedback
       AudioCacheUtil.tryPlayCachedPhrase(text);
-      
+
       // Stop any ongoing playback
       if (audioRef.current) {
         audioRef.current.pause();
         audioRef.current.src = '';
       }
 
-      const response = await fetch('/api/ai/text-to-speech', {
+      const apiBaseUrl = (import.meta as any).env.VITE_API_BASE_URL || '';
+      const response = await fetch(`${apiBaseUrl}/api/ai/text-to-speech`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ text, language }),
@@ -311,18 +312,18 @@ export function AIWaiter({ restaurantId, restaurantName, menuItems, onAddToCart 
       mediaRecorderRef.current.stop();
       mediaRecorderRef.current.stream.getTracks().forEach(track => track.stop());
     }
-    
+
     cleanupRecordingResources();
-    
+
     // Stop audio playback
     if (audioRef.current) {
       audioRef.current.pause();
       audioRef.current.src = '';
     }
-    
+
     // Stop any processing messages
     stopProcessingMessages();
-    
+
     // Reset to idle
     setStatus('idle');
   };
@@ -332,7 +333,7 @@ export function AIWaiter({ restaurantId, restaurantName, menuItems, onAddToCart 
     if (status === 'listening' || status === 'processing') {
       return; // Prevent multiple clicks during these states
     }
-    
+
     // If responding, allow stopping
     if (status === 'responding') {
       handleStop();
@@ -341,7 +342,7 @@ export function AIWaiter({ restaurantId, restaurantName, menuItems, onAddToCart 
 
     try {
       setStatus('listening');
-      
+
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       const mediaRecorder = new MediaRecorder(stream, {
         mimeType: 'audio/webm',
@@ -359,16 +360,17 @@ export function AIWaiter({ restaurantId, restaurantName, menuItems, onAddToCart 
         cleanupRecordingResources();
         setStatus('processing');
         startProcessingMessages(); // Start alternating messages
-        
+
         const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
-        
+
         try {
           // Send binary audio directly using FormData (more efficient than base64)
           const formData = new FormData();
           formData.append('audio', audioBlob, 'recording.webm');
           formData.append('language', language);
 
-          const sttResponse = await fetch('/api/ai/speech-to-text', {
+          const apiBaseUrl = (import.meta as any).env.VITE_API_BASE_URL || '';
+          const sttResponse = await fetch(`${apiBaseUrl}/api/ai/speech-to-text`, {
             method: 'POST',
             body: formData, // No Content-Type header - browser sets it automatically with boundary
           });
@@ -389,7 +391,7 @@ export function AIWaiter({ restaurantId, restaurantName, menuItems, onAddToCart 
 
           const sttData = await sttResponse.json();
           const transcribedText = sttData.text?.trim() || '';
-          
+
           if (transcribedText) {
             await processMessage(transcribedText);
           } else {
@@ -421,18 +423,18 @@ export function AIWaiter({ restaurantId, restaurantName, menuItems, onAddToCart 
 
       const bufferLength = analyserRef.current.frequencyBinCount;
       const dataArray = new Uint8Array(bufferLength);
-      
+
       let silenceStart: number | null = null;
       const SILENCE_THRESHOLD = 5; // Volume threshold for silence
       const SILENCE_DURATION = 1500; // 1.5 seconds of silence triggers stop
-      
+
       const recordingStartTime = Date.now();
-      
+
       const checkAudioLevel = () => {
         if (mediaRecorder.state !== 'recording' || !analyserRef.current) return;
-        
+
         analyserRef.current.getByteTimeDomainData(dataArray);
-        
+
         // Calculate average volume
         let sum = 0;
         for (let i = 0; i < bufferLength; i++) {
@@ -440,9 +442,9 @@ export function AIWaiter({ restaurantId, restaurantName, menuItems, onAddToCart 
           sum += value;
         }
         const average = sum / bufferLength;
-        
+
         const elapsed = ((Date.now() - recordingStartTime) / 1000).toFixed(1);
-        
+
         // Check if silent
         if (average < SILENCE_THRESHOLD) {
           if (silenceStart === null) {
@@ -451,10 +453,10 @@ export function AIWaiter({ restaurantId, restaurantName, menuItems, onAddToCart 
           } else if (Date.now() - silenceStart > SILENCE_DURATION) {
             const totalTime = ((Date.now() - recordingStartTime) / 1000).toFixed(1);
             console.log(`Silence detected after ${totalTime}s, stopping recording early`);
-            
+
             // Play instant acknowledgment sound
             AudioAcknowledgment.playAck();
-            
+
             mediaRecorder.stop();
             stream.getTracks().forEach(track => track.stop());
             return;
@@ -466,11 +468,11 @@ export function AIWaiter({ restaurantId, restaurantName, menuItems, onAddToCart 
           }
           silenceStart = null;
         }
-        
+
         // Continue checking
         requestAnimationFrame(checkAudioLevel);
       };
-      
+
       // Start monitoring audio levels
       requestAnimationFrame(checkAudioLevel);
 
@@ -478,15 +480,15 @@ export function AIWaiter({ restaurantId, restaurantName, menuItems, onAddToCart 
       setTimeout(() => {
         if (mediaRecorder.state === 'recording') {
           console.log('Auto-stopping recording after 20 seconds');
-          
+
           // Play instant acknowledgment sound
           AudioAcknowledgment.playAck();
-          
+
           mediaRecorder.stop();
           stream.getTracks().forEach(track => track.stop());
         }
       }, 20000);
-      
+
     } catch (error) {
       console.error('Microphone access error:', error);
       cleanupRecordingResources();
@@ -503,7 +505,8 @@ export function AIWaiter({ restaurantId, restaurantName, menuItems, onAddToCart 
 
     try {
       // Get AI response (processing messages continue alternating)
-      const response = await fetch('/api/ai/chat', {
+      const apiBaseUrl = (import.meta as any).env.VITE_API_BASE_URL || '';
+      const response = await fetch(`${apiBaseUrl}/api/ai/chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -520,25 +523,25 @@ export function AIWaiter({ restaurantId, restaurantName, menuItems, onAddToCart 
       }
 
       const data = await response.json();
-      
+
       if (!data.message) {
         throw new Error('No message in AI response');
       }
-      
+
       // Update conversation history (keep in memory for context, but don't display)
       setConversationHistory(prev => [
         ...prev,
         { role: 'user', content: userMessage },
         { role: 'assistant', content: data.message }
       ]);
-      
+
       // Add reminder to first two responses
       let messageToSpeak = data.message;
       if (responseCount < 2) {
         messageToSpeak += " Don't forget you have to press this button to speak.";
         setResponseCount(prev => prev + 1);
       }
-      
+
       // Speak the response (this will stop processing messages when audio starts playing)
       await speakMessage(messageToSpeak);
 

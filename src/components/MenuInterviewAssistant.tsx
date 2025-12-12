@@ -16,20 +16,20 @@ interface MenuInterviewAssistantProps {
 
 type Status = 'idle' | 'listening' | 'processing' | 'responding' | 'saving';
 
-export function MenuInterviewAssistant({ 
-  menuItemId, 
+export function MenuInterviewAssistant({
+  menuItemId,
   menuItemName,
-  restaurantId, 
+  restaurantId,
   interviewType = 'menu_item',
-  onComplete 
+  onComplete
 }: MenuInterviewAssistantProps) {
   const { toast } = useToast();
-  
+
   const [hasGreeted, setHasGreeted] = useState(false);
   const [status, setStatus] = useState<Status>('idle');
-  const [conversationHistory, setConversationHistory] = useState<Array<{role: 'user' | 'assistant', content: string}>>([]);
+  const [conversationHistory, setConversationHistory] = useState<Array<{ role: 'user' | 'assistant', content: string }>>([]);
   const [extractedData, setExtractedData] = useState<any>({});
-  
+
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -79,12 +79,12 @@ export function MenuInterviewAssistant({
   useEffect(() => {
     if (!hasGreeted && restaurantId) {
       setHasGreeted(true);
-      
+
       setTimeout(async () => {
-        const welcomeMessage = interviewType === 'menu_item' 
+        const welcomeMessage = interviewType === 'menu_item'
           ? `Hi! I'm here to help you add rich details about ${menuItemName || 'this menu item'}. Let's chat about how you make it, where your ingredients come from, and what makes it special. Ready to start?`
           : `Hi! I'd love to learn about your restaurant's story. Tell me about how you started, your cooking philosophy, and what makes your restaurant unique. Ready?`;
-        
+
         await sendMessage({ role: 'assistant', content: welcomeMessage }, true);
       }, 100);
     }
@@ -94,13 +94,14 @@ export function MenuInterviewAssistant({
     try {
       // Try to play cached phrase instantly for immediate feedback
       AudioCacheUtil.tryPlayCachedPhrase(text);
-      
+
       if (audioRef.current) {
         audioRef.current.pause();
         audioRef.current.src = '';
       }
 
-      const response = await fetch('/api/ai/text-to-speech', {
+      const apiBaseUrl = (import.meta as any).env.VITE_API_BASE_URL || '';
+      const response = await fetch(`${apiBaseUrl}/api/ai/text-to-speech`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ text, language: 'en' }),
@@ -145,7 +146,8 @@ export function MenuInterviewAssistant({
     try {
       setStatus('processing');
 
-      const response = await fetch('/api/ai/interview', {
+      const apiBaseUrl = (import.meta as any).env.VITE_API_BASE_URL || '';
+      const response = await fetch(`${apiBaseUrl}/api/ai/interview`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -163,7 +165,7 @@ export function MenuInterviewAssistant({
 
       const data = await response.json();
       const aiMessage = { role: 'assistant' as const, content: data.message };
-      
+
       setConversationHistory([...newHistory, aiMessage]);
       await speakMessage(data.message);
 
@@ -197,7 +199,7 @@ export function MenuInterviewAssistant({
         cleanupRecordingResources();
         const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
         await transcribeAudio(audioBlob);
-        
+
         stream.getTracks().forEach(track => track.stop());
       };
 
@@ -214,18 +216,18 @@ export function MenuInterviewAssistant({
 
       const bufferLength = analyserRef.current.frequencyBinCount;
       const dataArray = new Uint8Array(bufferLength);
-      
+
       let silenceStart: number | null = null;
       const SILENCE_THRESHOLD = 5; // Volume threshold for silence
       const SILENCE_DURATION = 1500; // 1.5 seconds of silence triggers stop
-      
+
       const recordingStartTime = Date.now();
-      
+
       const checkAudioLevel = () => {
         if (mediaRecorder.state !== 'recording' || !analyserRef.current) return;
-        
+
         analyserRef.current.getByteTimeDomainData(dataArray);
-        
+
         // Calculate average volume
         let sum = 0;
         for (let i = 0; i < bufferLength; i++) {
@@ -233,9 +235,9 @@ export function MenuInterviewAssistant({
           sum += value;
         }
         const average = sum / bufferLength;
-        
+
         const elapsed = ((Date.now() - recordingStartTime) / 1000).toFixed(1);
-        
+
         // Check if silent
         if (average < SILENCE_THRESHOLD) {
           if (silenceStart === null) {
@@ -244,10 +246,10 @@ export function MenuInterviewAssistant({
           } else if (Date.now() - silenceStart > SILENCE_DURATION) {
             const totalTime = ((Date.now() - recordingStartTime) / 1000).toFixed(1);
             console.log(`Silence detected after ${totalTime}s, stopping recording early`);
-            
+
             // Play instant acknowledgment sound
             AudioAcknowledgment.playAck();
-            
+
             mediaRecorder.stop();
             stream.getTracks().forEach(track => track.stop());
             return;
@@ -259,11 +261,11 @@ export function MenuInterviewAssistant({
           }
           silenceStart = null;
         }
-        
+
         // Continue checking
         requestAnimationFrame(checkAudioLevel);
       };
-      
+
       // Start monitoring audio levels
       requestAnimationFrame(checkAudioLevel);
 
@@ -271,10 +273,10 @@ export function MenuInterviewAssistant({
       setTimeout(() => {
         if (mediaRecorder.state === 'recording') {
           console.log('Auto-stopping recording after 20 seconds');
-          
+
           // Play instant acknowledgment sound
           AudioAcknowledgment.playAck();
-          
+
           mediaRecorder.stop();
           stream.getTracks().forEach(track => track.stop());
         }
@@ -323,7 +325,8 @@ export function MenuInterviewAssistant({
       formData.append('audio', audioBlob, 'recording.webm');
       formData.append('language', 'en');
 
-      const response = await fetch('/api/ai/speech-to-text', {
+      const apiBaseUrl = (import.meta as any).env.VITE_API_BASE_URL || '';
+      const response = await fetch(`${apiBaseUrl}/api/ai/speech-to-text`, {
         method: 'POST',
         body: formData,
       });
@@ -333,7 +336,7 @@ export function MenuInterviewAssistant({
       }
 
       const data = await response.json();
-      
+
       if (data.text && data.text.trim()) {
         await sendMessage({ role: 'user', content: data.text });
       } else {
@@ -365,7 +368,8 @@ export function MenuInterviewAssistant({
       // Extract structured data from conversation
       const data = extractDataFromConversation();
 
-      const response = await fetch('/api/ai/interview/save', {
+      const apiBaseUrl = (import.meta as any).env.VITE_API_BASE_URL || '';
+      const response = await fetch(`${apiBaseUrl}/api/ai/interview/save`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -387,7 +391,7 @@ export function MenuInterviewAssistant({
       });
 
       setStatus('idle');
-      
+
       if (onComplete) {
         onComplete();
       }
@@ -439,7 +443,7 @@ export function MenuInterviewAssistant({
           Menu Interview Assistant
         </CardTitle>
         <CardDescription>
-          {interviewType === 'menu_item' 
+          {interviewType === 'menu_item'
             ? `Adding details for: ${menuItemName || 'Menu Item'}`
             : 'Share your restaurant story'}
         </CardDescription>
@@ -462,7 +466,7 @@ export function MenuInterviewAssistant({
               <Mic className="w-12 h-12" />
             )}
           </Button>
-          
+
           <p className="text-sm text-muted-foreground" data-testid="text-interview-status">
             {getStatusText()}
           </p>

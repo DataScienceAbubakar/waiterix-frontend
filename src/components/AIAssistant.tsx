@@ -45,7 +45,8 @@ export function AIAssistant({ restaurantId, menuItems, onAddToCart }: AIAssistan
     setIsLoading(true);
 
     try {
-      const response = await fetch('/api/ai/chat', {
+      const apiBaseUrl = (import.meta as any).env.VITE_API_BASE_URL || '';
+      const response = await fetch(`${apiBaseUrl}/api/ai/chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -57,10 +58,10 @@ export function AIAssistant({ restaurantId, menuItems, onAddToCart }: AIAssistan
       });
 
       const data = await response.json();
-      
-      setMessages(prev => [...prev, { 
-        role: 'assistant', 
-        content: data.message 
+
+      setMessages(prev => [...prev, {
+        role: 'assistant',
+        content: data.message
       }]);
 
       // If AI recommends adding items to cart
@@ -70,9 +71,9 @@ export function AIAssistant({ restaurantId, menuItems, onAddToCart }: AIAssistan
         });
       }
     } catch (error) {
-      setMessages(prev => [...prev, { 
-        role: 'assistant', 
-        content: "I apologize, but I'm having trouble responding right now. Please try again." 
+      setMessages(prev => [...prev, {
+        role: 'assistant',
+        content: "I apologize, but I'm having trouble responding right now. Please try again."
       }]);
     } finally {
       setIsLoading(false);

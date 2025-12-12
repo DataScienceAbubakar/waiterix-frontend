@@ -53,7 +53,8 @@ export default function AdminPage() {
   }>({
     queryKey: ['/api/analytics/stats', analyticsRange],
     queryFn: async () => {
-      const res = await fetch(`/api/analytics/stats?period=${analyticsRange}`);
+      const apiBaseUrl = (import.meta as any).env.VITE_API_BASE_URL || '';
+      const res = await fetch(`${apiBaseUrl}/api/analytics/stats?period=${analyticsRange}`);
       if (!res.ok) throw new Error('Failed to fetch analytics');
       return res.json();
     },
@@ -473,7 +474,7 @@ export default function AdminPage() {
                       Irreversible action that will permanently delete your data.
                     </p>
                   </div>
-                  
+
                   <div className="space-y-3 pt-3 border-t">
                     <div>
                       <h4 className="font-medium mb-1">Delete Account</h4>
@@ -484,10 +485,10 @@ export default function AdminPage() {
                         variant="destructive"
                         onClick={() => {
                           const confirmed = confirm('⚠️ FINAL WARNING ⚠️\n\nThis will permanently delete your ENTIRE ACCOUNT including:\n- All restaurants\n- All menu items\n- All orders and customer data\n- All personal information\n\nThis action is IRREVERSIBLE and cannot be undone.\n\nAre you absolutely certain you want to proceed?');
-                          
+
                           if (confirmed) {
                             const doubleCheck = confirm('Type DELETE in the next prompt to confirm account deletion');
-                            
+
                             if (doubleCheck) {
                               const typed = prompt('Type DELETE (in capital letters) to confirm:');
                               if (typed === 'DELETE') {

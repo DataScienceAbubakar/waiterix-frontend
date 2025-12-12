@@ -166,7 +166,7 @@ function StripeOnboarding({ restaurant }: { restaurant: Restaurant }) {
             </>
           )}
         </Button>
-        
+
         {restaurant.stripeAccountId && (
           <Button
             variant="outline"
@@ -200,7 +200,8 @@ function PaystackOnboarding({ restaurant }: { restaurant: Restaurant }) {
   const { data: banksData } = useQuery({
     queryKey: ['/api/paystack/banks'],
     queryFn: async () => {
-      const res = await fetch('/api/paystack/banks', {
+      const apiBaseUrl = (import.meta as any).env.VITE_API_BASE_URL || '';
+      const res = await fetch(`${apiBaseUrl}/api/paystack/banks`, {
         credentials: 'include'
       });
       if (!res.ok) throw new Error('Failed to fetch banks');

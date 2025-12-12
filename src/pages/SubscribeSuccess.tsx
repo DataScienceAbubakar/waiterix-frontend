@@ -18,7 +18,8 @@ export default function SubscribeSuccess() {
   const { data, isLoading, error } = useQuery({
     queryKey: ['/api/subscription/checkout-success', sessionId],
     queryFn: async () => {
-      const response = await fetch(`/api/subscription/checkout-success?session_id=${sessionId}`, {
+      const apiBaseUrl = (import.meta as any).env.VITE_API_BASE_URL || '';
+      const response = await fetch(`${apiBaseUrl}/api/subscription/checkout-success?session_id=${sessionId}`, {
         credentials: 'include',
       });
       if (!response.ok) {
@@ -61,7 +62,7 @@ export default function SubscribeSuccess() {
             <p className="text-muted-foreground">
               This page requires a valid checkout session ID. Please try subscribing again.
             </p>
-            <Button 
+            <Button
               onClick={() => navigate('/subscribe')}
               data-testid="button-try-again"
             >
@@ -111,17 +112,17 @@ export default function SubscribeSuccess() {
               <p className="text-sm mt-1">{error instanceof Error ? error.message : 'An unexpected error occurred'}</p>
             </div>
             <p className="text-sm text-muted-foreground">
-              Your payment was successful, but we encountered an issue activating your subscription. 
+              Your payment was successful, but we encountered an issue activating your subscription.
               Please contact support or try logging in again.
             </p>
             <div className="flex gap-2">
-              <Button 
+              <Button
                 onClick={() => navigate('/dashboard')}
                 data-testid="button-dashboard"
               >
                 Go to Dashboard
               </Button>
-              <Button 
+              <Button
                 variant="outline"
                 onClick={() => navigate('/subscribe')}
                 data-testid="button-try-subscribe"

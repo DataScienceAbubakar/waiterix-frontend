@@ -65,7 +65,7 @@ export default function RestaurantDashboard() {
   const previousOrderCountRef = useRef<number>(0);
   const ordersInitializedRef = useRef<boolean>(false);
   const previousOrderIdsRef = useRef<Set<string>>(new Set());
-  const [orderToPrint, setOrderToPrint] = useState<{order: OrderWithTable; items: OrderItem[]} | null>(null);
+  const [orderToPrint, setOrderToPrint] = useState<{ order: OrderWithTable; items: OrderItem[] } | null>(null);
   const [pendingPrintOrderId, setPendingPrintOrderId] = useState<string | null>(null);
 
   // Fetch full user data to check terms acceptance
@@ -104,9 +104,9 @@ export default function RestaurantDashboard() {
   // Auto-redirect restaurants without active/trialing subscriptions to subscription page
   useEffect(() => {
     if (restaurant) {
-      const hasValidSubscription = restaurant.subscriptionId && 
+      const hasValidSubscription = restaurant.subscriptionId &&
         (restaurant.subscriptionStatus === 'active' || restaurant.subscriptionStatus === 'trialing');
-      
+
       if (!hasValidSubscription) {
         setLocation('/subscribe');
       }
@@ -178,25 +178,25 @@ export default function RestaurantDashboard() {
         previousOrderCountRef.current = orders.length;
         previousOrderIdsRef.current = new Set(orders.map(o => o.id));
         ordersInitializedRef.current = true;
-      } 
+      }
       // Subsequent loads - check for new orders
       else if (orders.length > previousOrderCountRef.current) {
         const currentOrderIds = new Set(orders.map(o => o.id));
         const newOrders = orders.filter(o => !previousOrderIdsRef.current.has(o.id));
-        
+
         if (newOrders.length > 0) {
           NotificationSound.playChime();
           toast({
             title: "New Order",
             description: `You have ${newOrders.length} new order(s)!`,
           });
-          
+
           // Auto-print the first new order if enabled
           if (restaurant?.autoPrintOrders && newOrders[0]) {
             console.log('[Auto-Print] New order detected, queuing for print:', newOrders[0].id);
             setPendingPrintOrderId(newOrders[0].id);
           }
-          
+
           previousOrderCountRef.current = orders.length;
           previousOrderIdsRef.current = currentOrderIds;
         }
@@ -208,17 +208,17 @@ export default function RestaurantDashboard() {
   useEffect(() => {
     if (pendingPrintOrderId && orders.length > 0 && orderItemsQueries.length > 0) {
       const orderIndex = orders.findIndex(o => o.id === pendingPrintOrderId);
-      
+
       // Order no longer exists - clear pending
       if (orderIndex < 0) {
         console.warn('[Auto-Print] Order disappeared before printing:', pendingPrintOrderId);
         setPendingPrintOrderId(null);
         return;
       }
-      
+
       const orderItemsQuery = orderItemsQueries[orderIndex];
       const orderItemsData = orderItemsQuery?.data as OrderItem[] | undefined;
-      
+
       // Check if items are loaded and available
       if (orderItemsData && !orderItemsQuery?.isLoading) {
         // Double-check that auto-print is still enabled before printing
@@ -443,7 +443,8 @@ export default function RestaurantDashboard() {
   // Download menu items as CSV
   const handleDownloadCSV = async () => {
     try {
-      const response = await fetch('/api/menu-items/export', {
+      const apiBaseUrl = (import.meta as any).env.VITE_API_BASE_URL || '';
+      const response = await fetch(`${apiBaseUrl}/api/menu-items/export`, {
         credentials: 'include',
       });
 
@@ -480,7 +481,7 @@ export default function RestaurantDashboard() {
     mutationFn: async ({ orderId, status, paymentMethod }: { orderId: string; status: string; paymentMethod: 'online' | 'cash' }) => {
       // Auto-complete online orders when marked as ready
       const finalStatus = (status === 'ready' && paymentMethod === 'online') ? 'completed' : status;
-      
+
       const response = await apiRequest('PUT', `/api/orders/${orderId}/status`, { status: finalStatus });
       return response.json();
     },
@@ -604,7 +605,7 @@ export default function RestaurantDashboard() {
         setRecoveryAnswer2('');
         setNewRecoveryPassword('');
         setConfirmRecoveryPassword('');
-        
+
         // Now try to verify with the new password and go to admin page
         setAdminPassword(newRecoveryPassword);
         setTimeout(() => {
@@ -745,7 +746,7 @@ export default function RestaurantDashboard() {
   });
 
   const todayRevenue = todayOrders.reduce((sum, order) => sum + order.total, 0);
-  const activeOrders = transformedOrders.filter(order => 
+  const activeOrders = transformedOrders.filter(order =>
     order.status === 'new' || order.status === 'preparing'
   ).length;
 
@@ -764,8 +765,8 @@ export default function RestaurantDashboard() {
   };
 
   return (
-    <RestaurantProvider 
-      currencyCode={restaurant?.currencyCode} 
+    <RestaurantProvider
+      currencyCode={restaurant?.currencyCode}
       defaultLanguage={restaurant?.defaultLanguage}
     >
       <SidebarProvider style={sidebarStyle as React.CSSProperties}>
@@ -777,650 +778,650 @@ export default function RestaurantDashboard() {
                   <div className="flex items-center gap-2">
                     <img src={logoUrl} alt="Waiterix" className="h-6 w-6" />
                     <span>Waiterix</span>
-                </div>
-              </SidebarGroupLabel>
-              <SidebarGroupContent>
-                <SidebarMenu>
-                  {menuItemsList.map((item) => (
-                    <SidebarMenuItem key={item.id}>
-                      <SidebarMenuButton
-                        onClick={() => setLocation(`/dashboard/${item.id}`)}
-                        isActive={activeTab === item.id}
-                        data-testid={`button-nav-${item.id}`}
-                      >
-                        <item.icon className="h-4 w-4" />
-                        <span className="flex items-center gap-2 flex-1">
-                          <span>{item.title}</span>
-                          {item.badge && (
-                            <span className="h-2 w-2 rounded-full bg-destructive" data-testid={`badge-${item.id}`}></span>
-                          )}
-                        </span>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                  ))}
-                </SidebarMenu>
-              </SidebarGroupContent>
-            </SidebarGroup>
-          </SidebarContent>
-        </Sidebar>
-
-        <div className="flex flex-col flex-1 overflow-hidden">
-          <header className="flex items-center justify-between p-4 border-b bg-card">
-            <div className="flex items-center gap-2">
-              <SidebarTrigger data-testid="button-sidebar-toggle" />
-              <h1 className="text-xl font-semibold">Dashboard</h1>
-            </div>
-            <div className="flex items-center gap-2">
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => setShowAdminPasswordDialog(true)}
-                data-testid="button-admin"
-                title="Admin Settings"
-              >
-                <Shield className="h-4 w-4" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={async () => {
-                  console.log("Logout button clicked");
-                  try {
-                    // Sign out from Firebase first
-                    await signOut();
-                    // Then destroy backend session
-                    await apiRequest("POST", "/api/logout");
-                    console.log("Logout complete, redirecting...");
-                    // Force reload to clear all state
-                    window.location.href = '/';
-                  } catch (error) {
-                    console.error("Logout error:", error);
-                    // Force redirect anyway
-                    window.location.href = '/';
-                  }
-                }}
-                data-testid="button-logout"
-                title="Log out"
-              >
-                <LogOut className="h-4 w-4" />
-              </Button>
-              <ThemeToggle />
-            </div>
-          </header>
-
-          <main className="flex-1 overflow-y-auto p-6">
-            {activeTab === 'overview' && (
-              <div className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                  <Card className="p-6">
-                    <p className="text-sm text-muted-foreground">Total Orders Today</p>
-                    <p className="text-3xl font-bold mt-2" data-testid="text-orders-today">
-                      {todayOrders.length}
-                    </p>
-                  </Card>
-                  <Card className="p-6">
-                    <p className="text-sm text-muted-foreground">Revenue Today</p>
-                    <p className="text-3xl font-bold mt-2" data-testid="text-revenue-today">
-                      {formatCurrency(todayRevenue)}
-                    </p>
-                  </Card>
-                  <Card className="p-6">
-                    <p className="text-sm text-muted-foreground">Menu Items</p>
-                    <p className="text-3xl font-bold mt-2" data-testid="text-menu-items-count">
-                      {menuItems.length}
-                    </p>
-                  </Card>
-                  <Card className="p-6">
-                    <p className="text-sm text-muted-foreground">Active Orders</p>
-                    <p className="text-3xl font-bold mt-2" data-testid="text-active-orders">
-                      {activeOrders}
-                    </p>
-                  </Card>
-                </div>
-
-                <div className="grid grid-cols-1 gap-6">
-                  <Card className="p-6">
-                    <h3 className="font-semibold text-lg mb-4">Recent Orders</h3>
-                    {isOrdersLoading ? (
-                      <div className="flex items-center justify-center py-8">
-                        <Loader2 className="h-6 w-6 animate-spin" data-testid="loader-orders" />
-                      </div>
-                    ) : transformedOrders.length === 0 ? (
-                      <p className="text-muted-foreground text-center py-8" data-testid="text-no-orders">
-                        No orders yet
-                      </p>
-                    ) : (
-                      <div className="space-y-3">
-                        {transformedOrders.slice(0, 2).map((order) => (
-                          <OrderCard 
-                            key={order.orderId} 
-                            {...order} 
-                            onStatusChange={(orderId, status) => 
-                              updateOrderStatusMutation.mutate({ orderId, status, paymentMethod: order.paymentMethod })
-                            }
-                          />
-                        ))}
-                      </div>
-                    )}
-                  </Card>
-                </div>
-              </div>
-            )}
-
-            {activeTab === 'menu' && (
-              <div className="space-y-6">
-                <div className="flex items-center justify-between flex-wrap gap-2">
-                  <h2 className="text-2xl font-bold">Menu Items</h2>
-                  <div className="flex items-center gap-2">
-                    <Button 
-                      variant="outline" 
-                      onClick={handleDownloadCSV}
-                      disabled={menuItems.length === 0}
-                      data-testid="button-download-csv"
-                    >
-                      <Download className="h-4 w-4 mr-2" />
-                      Download CSV
-                    </Button>
-                    <Button 
-                      variant="outline" 
-                      onClick={() => setShowCSVUploadDialog(true)}
-                      data-testid="button-upload-csv"
-                    >
-                      <Upload className="h-4 w-4 mr-2" />
-                      Upload CSV
-                    </Button>
-                    <Button onClick={() => setShowMenuItemDialog(true)} data-testid="button-add-menu-item">
-                      <Plus className="h-4 w-4 mr-2" />
-                      Add Item
-                    </Button>
                   </div>
-                </div>
-                {isMenuItemsLoading ? (
-                  <div className="flex items-center justify-center py-12">
-                    <Loader2 className="h-8 w-8 animate-spin" data-testid="loader-menu-items" />
-                  </div>
-                ) : menuItems.length === 0 ? (
-                  <Card className="p-12">
-                    <p className="text-muted-foreground text-center" data-testid="text-no-menu-items">
-                      No menu items yet. Click "Add Item" to create your first menu item.
-                    </p>
-                  </Card>
-                ) : (
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {menuItems.map((item) => (
-                      <Card key={item.id} className="p-4" data-testid={`card-menu-item-${item.id}`}>
-                        <div className="space-y-3">
-                          <div>
-                            <div className="flex items-start justify-between gap-2">
-                              <h3 className="font-semibold text-lg">{item.name}</h3>
-                              {!item.available && (
-                                <span className="text-xs px-2 py-1 rounded bg-muted text-muted-foreground">
-                                  Unavailable
-                                </span>
-                              )}
-                            </div>
-                            <p className="text-sm text-muted-foreground mt-1">{item.description}</p>
-                            <p className="text-lg font-semibold mt-2">{formatCurrency(parseFloat(item.price))}</p>
-                            <p className="text-sm text-muted-foreground mt-1 capitalize">{item.category}</p>
-                          </div>
-                          <div className="flex flex-wrap gap-2 pt-2 border-t">
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => {
-                                setInterviewingMenuItem(item);
-                                setShowInterviewDialog(true);
-                              }}
-                              data-testid={`button-add-details-${item.id}`}
-                            >
-                              <Bot className="h-3 w-3 mr-1" />
-                              AI Details
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => {
-                                setEditingMenuItem(item);
-                                setShowMenuItemDialog(true);
-                              }}
-                              data-testid={`button-edit-${item.id}`}
-                            >
-                              <Edit className="h-3 w-3 mr-1" />
-                              Edit
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => toggleAvailabilityMutation.mutate({ id: item.id, available: !item.available })}
-                              data-testid={`button-toggle-availability-${item.id}`}
-                            >
-                              {item.available ? (
-                                <>
-                                  <EyeOff className="h-3 w-3 mr-1" />
-                                  Hide
-                                </>
-                              ) : (
-                                <>
-                                  <Eye className="h-3 w-3 mr-1" />
-                                  Show
-                                </>
-                              )}
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => {
-                                if (confirm('Are you sure you want to delete this menu item?')) {
-                                  deleteMenuItemMutation.mutate(item.id);
-                                }
-                              }}
-                              data-testid={`button-delete-${item.id}`}
-                            >
-                              <Trash2 className="h-3 w-3 mr-1" />
-                              Delete
-                            </Button>
-                          </div>
-                        </div>
-                      </Card>
+                </SidebarGroupLabel>
+                <SidebarGroupContent>
+                  <SidebarMenu>
+                    {menuItemsList.map((item) => (
+                      <SidebarMenuItem key={item.id}>
+                        <SidebarMenuButton
+                          onClick={() => setLocation(`/dashboard/${item.id}`)}
+                          isActive={activeTab === item.id}
+                          data-testid={`button-nav-${item.id}`}
+                        >
+                          <item.icon className="h-4 w-4" />
+                          <span className="flex items-center gap-2 flex-1">
+                            <span>{item.title}</span>
+                            {item.badge && (
+                              <span className="h-2 w-2 rounded-full bg-destructive" data-testid={`badge-${item.id}`}></span>
+                            )}
+                          </span>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
                     ))}
-                  </div>
-                )}
+                  </SidebarMenu>
+                </SidebarGroupContent>
+              </SidebarGroup>
+            </SidebarContent>
+          </Sidebar>
+
+          <div className="flex flex-col flex-1 overflow-hidden">
+            <header className="flex items-center justify-between p-4 border-b bg-card">
+              <div className="flex items-center gap-2">
+                <SidebarTrigger data-testid="button-sidebar-toggle" />
+                <h1 className="text-xl font-semibold">Dashboard</h1>
               </div>
-            )}
-
-            {activeTab === 'orders' && (
-              <div className="space-y-6">
-                <h2 className="text-2xl font-bold">Orders</h2>
-                {isOrdersLoading ? (
-                  <div className="flex items-center justify-center py-12">
-                    <Loader2 className="h-8 w-8 animate-spin" data-testid="loader-all-orders" />
-                  </div>
-                ) : transformedOrders.length === 0 ? (
-                  <Card className="p-12">
-                    <p className="text-muted-foreground text-center" data-testid="text-no-all-orders">
-                      No orders yet
-                    </p>
-                  </Card>
-                ) : (
-                  <div className="space-y-8">
-                    {/* New Orders Section */}
-                    {groupedOrders.new.length > 0 && (
-                      <div className="space-y-4">
-                        <div className="flex items-center gap-3">
-                          <h3 className="text-lg font-semibold">New Orders</h3>
-                          <Badge variant="default" className="bg-blue-500">{groupedOrders.new.length}</Badge>
-                        </div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                          {groupedOrders.new.map((order) => (
-                            <OrderCard 
-                              key={order.orderId} 
-                              {...order} 
-                              onStatusChange={(orderId, status) => 
-                                updateOrderStatusMutation.mutate({ orderId, status, paymentMethod: order.paymentMethod })
-                              }
-                            />
-                          ))}
-                        </div>
-                        <div className="border-t-2 border-border" />
-                      </div>
-                    )}
-
-                    {/* Preparing Orders Section */}
-                    {groupedOrders.preparing.length > 0 && (
-                      <div className="space-y-4">
-                        <div className="flex items-center gap-3">
-                          <h3 className="text-lg font-semibold">Preparing</h3>
-                          <Badge variant="default" className="bg-yellow-500">{groupedOrders.preparing.length}</Badge>
-                        </div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                          {groupedOrders.preparing.map((order) => (
-                            <OrderCard 
-                              key={order.orderId} 
-                              {...order} 
-                              onStatusChange={(orderId, status) => 
-                                updateOrderStatusMutation.mutate({ orderId, status, paymentMethod: order.paymentMethod })
-                              }
-                            />
-                          ))}
-                        </div>
-                        <div className="border-t-2 border-border" />
-                      </div>
-                    )}
-
-                    {/* Ready Orders Section */}
-                    {groupedOrders.ready.length > 0 && (
-                      <div className="space-y-4">
-                        <div className="flex items-center gap-3">
-                          <h3 className="text-lg font-semibold">Ready for Pickup</h3>
-                          <Badge variant="default" className="bg-green-500">{groupedOrders.ready.length}</Badge>
-                        </div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                          {groupedOrders.ready.map((order) => (
-                            <OrderCard 
-                              key={order.orderId} 
-                              {...order} 
-                              onStatusChange={(orderId, status) => 
-                                updateOrderStatusMutation.mutate({ orderId, status, paymentMethod: order.paymentMethod })
-                              }
-                            />
-                          ))}
-                        </div>
-                        <div className="border-t-2 border-border" />
-                      </div>
-                    )}
-
-                    {/* Completed Orders Section */}
-                    {groupedOrders.completed.length > 0 && (
-                      <div className="space-y-4">
-                        <div className="flex items-center gap-3">
-                          <h3 className="text-lg font-semibold">Completed</h3>
-                          <Badge variant="secondary">{groupedOrders.completed.length}</Badge>
-                        </div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                          {groupedOrders.completed.map((order) => (
-                            <OrderCard 
-                              key={order.orderId} 
-                              {...order} 
-                              onStatusChange={(orderId, status) => 
-                                updateOrderStatusMutation.mutate({ orderId, status, paymentMethod: order.paymentMethod })
-                              }
-                            />
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                )}
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setShowAdminPasswordDialog(true)}
+                  data-testid="button-admin"
+                  title="Admin Settings"
+                >
+                  <Shield className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={async () => {
+                    console.log("Logout button clicked");
+                    try {
+                      // Sign out from Firebase first
+                      await signOut();
+                      // Then destroy backend session
+                      await apiRequest("POST", "/api/logout");
+                      console.log("Logout complete, redirecting...");
+                      // Force reload to clear all state
+                      window.location.href = '/';
+                    } catch (error) {
+                      console.error("Logout error:", error);
+                      // Force redirect anyway
+                      window.location.href = '/';
+                    }
+                  }}
+                  data-testid="button-logout"
+                  title="Log out"
+                >
+                  <LogOut className="h-4 w-4" />
+                </Button>
+                <ThemeToggle />
               </div>
-            )}
+            </header>
 
-            {activeTab === 'questions' && (
-              <PendingQuestionsPanel restaurantId={restaurant.id} />
-            )}
+            <main className="flex-1 overflow-y-auto p-6">
+              {activeTab === 'overview' && (
+                <div className="space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <Card className="p-6">
+                      <p className="text-sm text-muted-foreground">Total Orders Today</p>
+                      <p className="text-3xl font-bold mt-2" data-testid="text-orders-today">
+                        {todayOrders.length}
+                      </p>
+                    </Card>
+                    <Card className="p-6">
+                      <p className="text-sm text-muted-foreground">Revenue Today</p>
+                      <p className="text-3xl font-bold mt-2" data-testid="text-revenue-today">
+                        {formatCurrency(todayRevenue)}
+                      </p>
+                    </Card>
+                    <Card className="p-6">
+                      <p className="text-sm text-muted-foreground">Menu Items</p>
+                      <p className="text-3xl font-bold mt-2" data-testid="text-menu-items-count">
+                        {menuItems.length}
+                      </p>
+                    </Card>
+                    <Card className="p-6">
+                      <p className="text-sm text-muted-foreground">Active Orders</p>
+                      <p className="text-3xl font-bold mt-2" data-testid="text-active-orders">
+                        {activeOrders}
+                      </p>
+                    </Card>
+                  </div>
 
-            {activeTab === 'assistance' && (
-              <AssistanceTab />
-            )}
-
-            {activeTab === 'contact' && restaurant && (
-              <ContactUsTab restaurantName={restaurant.name} />
-            )}
-          </main>
-        </div>
-      </div>
-
-      <Dialog open={showMenuItemDialog} onOpenChange={(open) => {
-        setShowMenuItemDialog(open);
-        if (!open) {
-          setEditingMenuItem(null);
-        }
-      }}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>{editingMenuItem ? 'Edit Menu Item' : 'Add Menu Item'}</DialogTitle>
-          </DialogHeader>
-          <MenuItemForm
-            menuItem={editingMenuItem || undefined}
-            onSubmit={(data) => {
-              if (editingMenuItem) {
-                updateMenuItemMutation.mutate({ id: editingMenuItem.id, data });
-              } else {
-                createMenuItemMutation.mutate(data);
-              }
-            }}
-            onCancel={() => {
-              setShowMenuItemDialog(false);
-              setEditingMenuItem(null);
-            }}
-          />
-        </DialogContent>
-      </Dialog>
-
-      <Dialog open={showInterviewDialog} onOpenChange={(open) => {
-        setShowInterviewDialog(open);
-        if (!open) {
-          setInterviewingMenuItem(null);
-        }
-      }}>
-        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>AI Menu Interview</DialogTitle>
-          </DialogHeader>
-          {interviewingMenuItem && restaurant && (
-            <MenuInterviewAssistant
-              menuItemId={interviewingMenuItem.id}
-              menuItemName={interviewingMenuItem.name}
-              restaurantId={restaurant.id}
-              interviewType="menu_item"
-              onComplete={() => {
-                setShowInterviewDialog(false);
-                setInterviewingMenuItem(null);
-                toast({
-                  title: "Interview Complete",
-                  description: "Menu details saved successfully!",
-                });
-              }}
-            />
-          )}
-        </DialogContent>
-      </Dialog>
-
-      <Dialog open={showAdminPasswordDialog} onOpenChange={(open) => {
-        setShowAdminPasswordDialog(open);
-        if (!open) {
-          setAdminPassword('');
-        }
-      }}>
-        <DialogContent data-testid="dialog-admin-password">
-          <DialogHeader>
-            <DialogTitle>Admin Access Required</DialogTitle>
-            <DialogDescription>
-              Enter your admin password to access admin settings and analytics.
-            </DialogDescription>
-          </DialogHeader>
-          <form onSubmit={(e) => {
-            e.preventDefault();
-            handleAdminPasswordVerification();
-          }}>
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="admin-password">Admin Password</Label>
-                <Input
-                  id="admin-password"
-                  type="password"
-                  placeholder="Enter admin password"
-                  value={adminPassword}
-                  onChange={(e) => setAdminPassword(e.target.value)}
-                  disabled={isVerifyingAdmin}
-                  data-testid="input-admin-password"
-                />
-              </div>
-              {securityQuestionsData?.hasQuestions && (
-                <div className="text-center">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setShowAdminPasswordDialog(false);
-                      setAdminPassword('');
-                      setShowPasswordRecoveryDialog(true);
-                    }}
-                    disabled={isVerifyingAdmin}
-                    className="text-sm text-primary hover:underline"
-                    data-testid="button-forgot-password"
-                  >
-                    Forgot password?
-                  </button>
+                  <div className="grid grid-cols-1 gap-6">
+                    <Card className="p-6">
+                      <h3 className="font-semibold text-lg mb-4">Recent Orders</h3>
+                      {isOrdersLoading ? (
+                        <div className="flex items-center justify-center py-8">
+                          <Loader2 className="h-6 w-6 animate-spin" data-testid="loader-orders" />
+                        </div>
+                      ) : transformedOrders.length === 0 ? (
+                        <p className="text-muted-foreground text-center py-8" data-testid="text-no-orders">
+                          No orders yet
+                        </p>
+                      ) : (
+                        <div className="space-y-3">
+                          {transformedOrders.slice(0, 2).map((order) => (
+                            <OrderCard
+                              key={order.orderId}
+                              {...order}
+                              onStatusChange={(orderId, status) =>
+                                updateOrderStatusMutation.mutate({ orderId, status, paymentMethod: order.paymentMethod })
+                              }
+                            />
+                          ))}
+                        </div>
+                      )}
+                    </Card>
+                  </div>
                 </div>
               )}
-            </div>
-            <DialogFooter className="mt-6">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => {
-                  setShowAdminPasswordDialog(false);
-                  setAdminPassword('');
+
+              {activeTab === 'menu' && (
+                <div className="space-y-6">
+                  <div className="flex items-center justify-between flex-wrap gap-2">
+                    <h2 className="text-2xl font-bold">Menu Items</h2>
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant="outline"
+                        onClick={handleDownloadCSV}
+                        disabled={menuItems.length === 0}
+                        data-testid="button-download-csv"
+                      >
+                        <Download className="h-4 w-4 mr-2" />
+                        Download CSV
+                      </Button>
+                      <Button
+                        variant="outline"
+                        onClick={() => setShowCSVUploadDialog(true)}
+                        data-testid="button-upload-csv"
+                      >
+                        <Upload className="h-4 w-4 mr-2" />
+                        Upload CSV
+                      </Button>
+                      <Button onClick={() => setShowMenuItemDialog(true)} data-testid="button-add-menu-item">
+                        <Plus className="h-4 w-4 mr-2" />
+                        Add Item
+                      </Button>
+                    </div>
+                  </div>
+                  {isMenuItemsLoading ? (
+                    <div className="flex items-center justify-center py-12">
+                      <Loader2 className="h-8 w-8 animate-spin" data-testid="loader-menu-items" />
+                    </div>
+                  ) : menuItems.length === 0 ? (
+                    <Card className="p-12">
+                      <p className="text-muted-foreground text-center" data-testid="text-no-menu-items">
+                        No menu items yet. Click "Add Item" to create your first menu item.
+                      </p>
+                    </Card>
+                  ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                      {menuItems.map((item) => (
+                        <Card key={item.id} className="p-4" data-testid={`card-menu-item-${item.id}`}>
+                          <div className="space-y-3">
+                            <div>
+                              <div className="flex items-start justify-between gap-2">
+                                <h3 className="font-semibold text-lg">{item.name}</h3>
+                                {!item.available && (
+                                  <span className="text-xs px-2 py-1 rounded bg-muted text-muted-foreground">
+                                    Unavailable
+                                  </span>
+                                )}
+                              </div>
+                              <p className="text-sm text-muted-foreground mt-1">{item.description}</p>
+                              <p className="text-lg font-semibold mt-2">{formatCurrency(parseFloat(item.price))}</p>
+                              <p className="text-sm text-muted-foreground mt-1 capitalize">{item.category}</p>
+                            </div>
+                            <div className="flex flex-wrap gap-2 pt-2 border-t">
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => {
+                                  setInterviewingMenuItem(item);
+                                  setShowInterviewDialog(true);
+                                }}
+                                data-testid={`button-add-details-${item.id}`}
+                              >
+                                <Bot className="h-3 w-3 mr-1" />
+                                AI Details
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => {
+                                  setEditingMenuItem(item);
+                                  setShowMenuItemDialog(true);
+                                }}
+                                data-testid={`button-edit-${item.id}`}
+                              >
+                                <Edit className="h-3 w-3 mr-1" />
+                                Edit
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => toggleAvailabilityMutation.mutate({ id: item.id, available: !item.available })}
+                                data-testid={`button-toggle-availability-${item.id}`}
+                              >
+                                {item.available ? (
+                                  <>
+                                    <EyeOff className="h-3 w-3 mr-1" />
+                                    Hide
+                                  </>
+                                ) : (
+                                  <>
+                                    <Eye className="h-3 w-3 mr-1" />
+                                    Show
+                                  </>
+                                )}
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => {
+                                  if (confirm('Are you sure you want to delete this menu item?')) {
+                                    deleteMenuItemMutation.mutate(item.id);
+                                  }
+                                }}
+                                data-testid={`button-delete-${item.id}`}
+                              >
+                                <Trash2 className="h-3 w-3 mr-1" />
+                                Delete
+                              </Button>
+                            </div>
+                          </div>
+                        </Card>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {activeTab === 'orders' && (
+                <div className="space-y-6">
+                  <h2 className="text-2xl font-bold">Orders</h2>
+                  {isOrdersLoading ? (
+                    <div className="flex items-center justify-center py-12">
+                      <Loader2 className="h-8 w-8 animate-spin" data-testid="loader-all-orders" />
+                    </div>
+                  ) : transformedOrders.length === 0 ? (
+                    <Card className="p-12">
+                      <p className="text-muted-foreground text-center" data-testid="text-no-all-orders">
+                        No orders yet
+                      </p>
+                    </Card>
+                  ) : (
+                    <div className="space-y-8">
+                      {/* New Orders Section */}
+                      {groupedOrders.new.length > 0 && (
+                        <div className="space-y-4">
+                          <div className="flex items-center gap-3">
+                            <h3 className="text-lg font-semibold">New Orders</h3>
+                            <Badge variant="default" className="bg-blue-500">{groupedOrders.new.length}</Badge>
+                          </div>
+                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                            {groupedOrders.new.map((order) => (
+                              <OrderCard
+                                key={order.orderId}
+                                {...order}
+                                onStatusChange={(orderId, status) =>
+                                  updateOrderStatusMutation.mutate({ orderId, status, paymentMethod: order.paymentMethod })
+                                }
+                              />
+                            ))}
+                          </div>
+                          <div className="border-t-2 border-border" />
+                        </div>
+                      )}
+
+                      {/* Preparing Orders Section */}
+                      {groupedOrders.preparing.length > 0 && (
+                        <div className="space-y-4">
+                          <div className="flex items-center gap-3">
+                            <h3 className="text-lg font-semibold">Preparing</h3>
+                            <Badge variant="default" className="bg-yellow-500">{groupedOrders.preparing.length}</Badge>
+                          </div>
+                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                            {groupedOrders.preparing.map((order) => (
+                              <OrderCard
+                                key={order.orderId}
+                                {...order}
+                                onStatusChange={(orderId, status) =>
+                                  updateOrderStatusMutation.mutate({ orderId, status, paymentMethod: order.paymentMethod })
+                                }
+                              />
+                            ))}
+                          </div>
+                          <div className="border-t-2 border-border" />
+                        </div>
+                      )}
+
+                      {/* Ready Orders Section */}
+                      {groupedOrders.ready.length > 0 && (
+                        <div className="space-y-4">
+                          <div className="flex items-center gap-3">
+                            <h3 className="text-lg font-semibold">Ready for Pickup</h3>
+                            <Badge variant="default" className="bg-green-500">{groupedOrders.ready.length}</Badge>
+                          </div>
+                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                            {groupedOrders.ready.map((order) => (
+                              <OrderCard
+                                key={order.orderId}
+                                {...order}
+                                onStatusChange={(orderId, status) =>
+                                  updateOrderStatusMutation.mutate({ orderId, status, paymentMethod: order.paymentMethod })
+                                }
+                              />
+                            ))}
+                          </div>
+                          <div className="border-t-2 border-border" />
+                        </div>
+                      )}
+
+                      {/* Completed Orders Section */}
+                      {groupedOrders.completed.length > 0 && (
+                        <div className="space-y-4">
+                          <div className="flex items-center gap-3">
+                            <h3 className="text-lg font-semibold">Completed</h3>
+                            <Badge variant="secondary">{groupedOrders.completed.length}</Badge>
+                          </div>
+                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                            {groupedOrders.completed.map((order) => (
+                              <OrderCard
+                                key={order.orderId}
+                                {...order}
+                                onStatusChange={(orderId, status) =>
+                                  updateOrderStatusMutation.mutate({ orderId, status, paymentMethod: order.paymentMethod })
+                                }
+                              />
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {activeTab === 'questions' && (
+                <PendingQuestionsPanel restaurantId={restaurant.id} />
+              )}
+
+              {activeTab === 'assistance' && (
+                <AssistanceTab />
+              )}
+
+              {activeTab === 'contact' && restaurant && (
+                <ContactUsTab restaurantName={restaurant.name} />
+              )}
+            </main>
+          </div>
+        </div>
+
+        <Dialog open={showMenuItemDialog} onOpenChange={(open) => {
+          setShowMenuItemDialog(open);
+          if (!open) {
+            setEditingMenuItem(null);
+          }
+        }}>
+          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>{editingMenuItem ? 'Edit Menu Item' : 'Add Menu Item'}</DialogTitle>
+            </DialogHeader>
+            <MenuItemForm
+              menuItem={editingMenuItem || undefined}
+              onSubmit={(data) => {
+                if (editingMenuItem) {
+                  updateMenuItemMutation.mutate({ id: editingMenuItem.id, data });
+                } else {
+                  createMenuItemMutation.mutate(data);
+                }
+              }}
+              onCancel={() => {
+                setShowMenuItemDialog(false);
+                setEditingMenuItem(null);
+              }}
+            />
+          </DialogContent>
+        </Dialog>
+
+        <Dialog open={showInterviewDialog} onOpenChange={(open) => {
+          setShowInterviewDialog(open);
+          if (!open) {
+            setInterviewingMenuItem(null);
+          }
+        }}>
+          <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>AI Menu Interview</DialogTitle>
+            </DialogHeader>
+            {interviewingMenuItem && restaurant && (
+              <MenuInterviewAssistant
+                menuItemId={interviewingMenuItem.id}
+                menuItemName={interviewingMenuItem.name}
+                restaurantId={restaurant.id}
+                interviewType="menu_item"
+                onComplete={() => {
+                  setShowInterviewDialog(false);
+                  setInterviewingMenuItem(null);
+                  toast({
+                    title: "Interview Complete",
+                    description: "Menu details saved successfully!",
+                  });
                 }}
-                disabled={isVerifyingAdmin}
-                data-testid="button-cancel-admin"
-              >
-                Cancel
-              </Button>
-              <Button
-                type="submit"
-                disabled={isVerifyingAdmin || !adminPassword}
-                data-testid="button-verify-admin"
-              >
-                {isVerifyingAdmin ? (
-                  <>
-                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                    Verifying...
-                  </>
-                ) : (
-                  'Access Admin'
+              />
+            )}
+          </DialogContent>
+        </Dialog>
+
+        <Dialog open={showAdminPasswordDialog} onOpenChange={(open) => {
+          setShowAdminPasswordDialog(open);
+          if (!open) {
+            setAdminPassword('');
+          }
+        }}>
+          <DialogContent data-testid="dialog-admin-password">
+            <DialogHeader>
+              <DialogTitle>Admin Access Required</DialogTitle>
+              <DialogDescription>
+                Enter your admin password to access admin settings and analytics.
+              </DialogDescription>
+            </DialogHeader>
+            <form onSubmit={(e) => {
+              e.preventDefault();
+              handleAdminPasswordVerification();
+            }}>
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="admin-password">Admin Password</Label>
+                  <Input
+                    id="admin-password"
+                    type="password"
+                    placeholder="Enter admin password"
+                    value={adminPassword}
+                    onChange={(e) => setAdminPassword(e.target.value)}
+                    disabled={isVerifyingAdmin}
+                    data-testid="input-admin-password"
+                  />
+                </div>
+                {securityQuestionsData?.hasQuestions && (
+                  <div className="text-center">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowAdminPasswordDialog(false);
+                        setAdminPassword('');
+                        setShowPasswordRecoveryDialog(true);
+                      }}
+                      disabled={isVerifyingAdmin}
+                      className="text-sm text-primary hover:underline"
+                      data-testid="button-forgot-password"
+                    >
+                      Forgot password?
+                    </button>
+                  </div>
                 )}
-              </Button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
-
-      <Dialog open={showPasswordRecoveryDialog} onOpenChange={(open) => {
-        setShowPasswordRecoveryDialog(open);
-        if (!open) {
-          setRecoveryAnswer1('');
-          setRecoveryAnswer2('');
-          setNewRecoveryPassword('');
-          setConfirmRecoveryPassword('');
-        }
-      }}>
-        <DialogContent data-testid="dialog-password-recovery">
-          <DialogHeader>
-            <DialogTitle>Reset Admin Password</DialogTitle>
-            <DialogDescription>
-              Answer your security questions to reset your admin password.
-            </DialogDescription>
-          </DialogHeader>
-          <form onSubmit={(e) => {
-            e.preventDefault();
-            handlePasswordRecovery();
-          }}>
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="recovery-question-1">
-                  {securityQuestionsData?.questions?.question1 || "Security Question 1"}
-                </Label>
-                <Input
-                  id="recovery-answer-1"
-                  type="text"
-                  placeholder="Your answer"
-                  value={recoveryAnswer1}
-                  onChange={(e) => setRecoveryAnswer1(e.target.value)}
-                  disabled={isVerifyingAdmin}
-                  required
-                  data-testid="input-recovery-answer-1"
-                />
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="recovery-question-2">
-                  {securityQuestionsData?.questions?.question2 || "Security Question 2"}
-                </Label>
-                <Input
-                  id="recovery-answer-2"
-                  type="text"
-                  placeholder="Your answer"
-                  value={recoveryAnswer2}
-                  onChange={(e) => setRecoveryAnswer2(e.target.value)}
+              <DialogFooter className="mt-6">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => {
+                    setShowAdminPasswordDialog(false);
+                    setAdminPassword('');
+                  }}
                   disabled={isVerifyingAdmin}
-                  required
-                  data-testid="input-recovery-answer-2"
-                />
+                  data-testid="button-cancel-admin"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={isVerifyingAdmin || !adminPassword}
+                  data-testid="button-verify-admin"
+                >
+                  {isVerifyingAdmin ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                      Verifying...
+                    </>
+                  ) : (
+                    'Access Admin'
+                  )}
+                </Button>
+              </DialogFooter>
+            </form>
+          </DialogContent>
+        </Dialog>
+
+        <Dialog open={showPasswordRecoveryDialog} onOpenChange={(open) => {
+          setShowPasswordRecoveryDialog(open);
+          if (!open) {
+            setRecoveryAnswer1('');
+            setRecoveryAnswer2('');
+            setNewRecoveryPassword('');
+            setConfirmRecoveryPassword('');
+          }
+        }}>
+          <DialogContent data-testid="dialog-password-recovery">
+            <DialogHeader>
+              <DialogTitle>Reset Admin Password</DialogTitle>
+              <DialogDescription>
+                Answer your security questions to reset your admin password.
+              </DialogDescription>
+            </DialogHeader>
+            <form onSubmit={(e) => {
+              e.preventDefault();
+              handlePasswordRecovery();
+            }}>
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="recovery-question-1">
+                    {securityQuestionsData?.questions?.question1 || "Security Question 1"}
+                  </Label>
+                  <Input
+                    id="recovery-answer-1"
+                    type="text"
+                    placeholder="Your answer"
+                    value={recoveryAnswer1}
+                    onChange={(e) => setRecoveryAnswer1(e.target.value)}
+                    disabled={isVerifyingAdmin}
+                    required
+                    data-testid="input-recovery-answer-1"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="recovery-question-2">
+                    {securityQuestionsData?.questions?.question2 || "Security Question 2"}
+                  </Label>
+                  <Input
+                    id="recovery-answer-2"
+                    type="text"
+                    placeholder="Your answer"
+                    value={recoveryAnswer2}
+                    onChange={(e) => setRecoveryAnswer2(e.target.value)}
+                    disabled={isVerifyingAdmin}
+                    required
+                    data-testid="input-recovery-answer-2"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="new-recovery-password">New Password</Label>
+                  <Input
+                    id="new-recovery-password"
+                    type="password"
+                    placeholder="Enter new password (min 6 characters)"
+                    value={newRecoveryPassword}
+                    onChange={(e) => setNewRecoveryPassword(e.target.value)}
+                    disabled={isVerifyingAdmin}
+                    required
+                    data-testid="input-new-recovery-password"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="confirm-recovery-password">Confirm New Password</Label>
+                  <Input
+                    id="confirm-recovery-password"
+                    type="password"
+                    placeholder="Confirm new password"
+                    value={confirmRecoveryPassword}
+                    onChange={(e) => setConfirmRecoveryPassword(e.target.value)}
+                    disabled={isVerifyingAdmin}
+                    required
+                    data-testid="input-confirm-recovery-password"
+                  />
+                </div>
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="new-recovery-password">New Password</Label>
-                <Input
-                  id="new-recovery-password"
-                  type="password"
-                  placeholder="Enter new password (min 6 characters)"
-                  value={newRecoveryPassword}
-                  onChange={(e) => setNewRecoveryPassword(e.target.value)}
+              <DialogFooter className="mt-6">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => {
+                    setShowPasswordRecoveryDialog(false);
+                    setRecoveryAnswer1('');
+                    setRecoveryAnswer2('');
+                    setNewRecoveryPassword('');
+                    setConfirmRecoveryPassword('');
+                  }}
                   disabled={isVerifyingAdmin}
-                  required
-                  data-testid="input-new-recovery-password"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="confirm-recovery-password">Confirm New Password</Label>
-                <Input
-                  id="confirm-recovery-password"
-                  type="password"
-                  placeholder="Confirm new password"
-                  value={confirmRecoveryPassword}
-                  onChange={(e) => setConfirmRecoveryPassword(e.target.value)}
+                  data-testid="button-cancel-recovery"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="submit"
                   disabled={isVerifyingAdmin}
-                  required
-                  data-testid="input-confirm-recovery-password"
-                />
-              </div>
-            </div>
-            <DialogFooter className="mt-6">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => {
-                  setShowPasswordRecoveryDialog(false);
-                  setRecoveryAnswer1('');
-                  setRecoveryAnswer2('');
-                  setNewRecoveryPassword('');
-                  setConfirmRecoveryPassword('');
-                }}
-                disabled={isVerifyingAdmin}
-                data-testid="button-cancel-recovery"
-              >
-                Cancel
-              </Button>
-              <Button
-                type="submit"
-                disabled={isVerifyingAdmin}
-                data-testid="button-submit-recovery"
-              >
-                {isVerifyingAdmin ? (
-                  <>
-                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                    Resetting...
-                  </>
-                ) : (
-                  'Reset Password'
-                )}
-              </Button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
+                  data-testid="button-submit-recovery"
+                >
+                  {isVerifyingAdmin ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                      Resetting...
+                    </>
+                  ) : (
+                    'Reset Password'
+                  )}
+                </Button>
+              </DialogFooter>
+            </form>
+          </DialogContent>
+        </Dialog>
 
-      <TermsAcceptanceModal
-        open={showTermsModal}
-        onAccept={() => setShowTermsModal(false)}
-      />
-
-      <MenuItemsCSVUpload
-        open={showCSVUploadDialog}
-        onOpenChange={setShowCSVUploadDialog}
-        onImportComplete={() => {
-          queryClient.invalidateQueries({ queryKey: [`/api/menu-items?restaurantId=${restaurant?.id}`] });
-        }}
-      />
-
-      {/* Hidden printable order component for auto-print */}
-      {orderToPrint && (
-        <PrintableOrder
-          order={orderToPrint.order}
-          items={orderToPrint.items}
-          tableNumber={orderToPrint.order.tableNumber}
-          restaurantName={restaurant?.name}
+        <TermsAcceptanceModal
+          open={showTermsModal}
+          onAccept={() => setShowTermsModal(false)}
         />
-      )}
-    </SidebarProvider>
+
+        <MenuItemsCSVUpload
+          open={showCSVUploadDialog}
+          onOpenChange={setShowCSVUploadDialog}
+          onImportComplete={() => {
+            queryClient.invalidateQueries({ queryKey: [`/api/menu-items?restaurantId=${restaurant?.id}`] });
+          }}
+        />
+
+        {/* Hidden printable order component for auto-print */}
+        {orderToPrint && (
+          <PrintableOrder
+            order={orderToPrint.order}
+            items={orderToPrint.items}
+            tableNumber={orderToPrint.order.tableNumber}
+            restaurantName={restaurant?.name}
+          />
+        )}
+      </SidebarProvider>
     </RestaurantProvider>
   );
 }

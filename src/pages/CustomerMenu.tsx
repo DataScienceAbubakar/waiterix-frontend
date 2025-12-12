@@ -58,10 +58,10 @@ function CustomerMenuContent() {
   const [receiptOrderId, setReceiptOrderId] = useState<string | null>(null);
   const [receiptDialogOpen, setReceiptDialogOpen] = useState(false);
   const floatingAIWaiterRef = useRef<{ triggerWelcome: () => Promise<void> } | null>(null);
-  
+
   // Extract table ID from query params
   const tableId = new URLSearchParams(window.location.search).get('table');
-  
+
   // Check if this is the first visit for this restaurant session
   useEffect(() => {
     if (restaurantId) {
@@ -76,7 +76,8 @@ function CustomerMenuContent() {
   const { data: restaurant, isLoading: restaurantLoading, error: restaurantError } = useQuery<Restaurant>({
     queryKey: ['/api/public/restaurant', restaurantId],
     queryFn: async () => {
-      const res = await fetch(`/api/public/restaurant/${restaurantId}`);
+      const apiBaseUrl = (import.meta as any).env.VITE_API_BASE_URL || '';
+      const res = await fetch(`${apiBaseUrl}/api/public/restaurant/${restaurantId}`);
       if (!res.ok) throw new Error('Restaurant not found');
       return res.json();
     },
@@ -87,7 +88,7 @@ function CustomerMenuContent() {
   useEffect(() => {
     if (restaurant?.defaultLanguage && restaurantId) {
       const storedRestaurantLanguage = localStorage.getItem(`restaurant-${restaurantId}-language`);
-      
+
       if (storedRestaurantLanguage) {
         // User has a preference for this restaurant, use it
         if (storedRestaurantLanguage !== language) {
@@ -120,7 +121,8 @@ function CustomerMenuContent() {
         const hasTrackedScan = sessionStorage.getItem(`restaurant-${restaurantId}-table-${tableId}-tracked`);
         if (!hasTrackedScan) {
           try {
-            await fetch('/api/analytics/table-scan', {
+            const apiBaseUrl = (import.meta as any).env.VITE_API_BASE_URL || '';
+            await fetch(`${apiBaseUrl}/api/analytics/table-scan`, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ restaurantId, tableId }),
@@ -142,11 +144,11 @@ function CustomerMenuContent() {
       const urlParams = new URLSearchParams(window.location.search);
       const paymentIntent = urlParams.get('payment_intent');
       const paymentIntentClientSecret = urlParams.get('payment_intent_client_secret');
-      
+
       // Check if this is a return from a redirect-based payment
       if (paymentIntent && paymentIntentClientSecret) {
         console.log('[Payment Return] Detected payment redirect return');
-        
+
         // Get pending order data from localStorage
         const pendingOrderDataStr = localStorage.getItem('pendingOrder');
         if (!pendingOrderDataStr) {
@@ -162,7 +164,7 @@ function CustomerMenuContent() {
         }
 
         const pendingOrderData = JSON.parse(pendingOrderDataStr);
-        
+
         // Check if pending order data has expired (1 hour)
         const PENDING_ORDER_EXPIRY = 60 * 60 * 1000; // 1 hour in milliseconds
         const orderAge = Date.now() - pendingOrderData.timestamp;
@@ -178,7 +180,7 @@ function CustomerMenuContent() {
           window.history.replaceState({}, document.title, window.location.pathname);
           return;
         }
-        
+
         // Verify payment was successful using Stripe
         try {
           const stripeKey = import.meta.env.VITE_STRIPE_PUBLIC_KEY;
@@ -196,10 +198,10 @@ function CustomerMenuContent() {
 
           // Retrieve the PaymentIntent to verify status
           const { paymentIntent: retrievedPaymentIntent } = await stripe.retrievePaymentIntent(paymentIntentClientSecret);
-          
+
           if (retrievedPaymentIntent?.status === 'succeeded') {
             console.log('[Payment Return] Payment successful, creating order');
-            
+
             // Create the order
             const response = await apiRequest("POST", "/api/orders", {
               ...pendingOrderData,
@@ -210,14 +212,14 @@ function CustomerMenuContent() {
             if (!response.ok) {
               const errorData = await response.json();
               console.error('[Payment Return] Order creation failed:', errorData);
-              
+
               // Keep pending data for potential retry, show error
               toast({
                 title: "Order Creation Failed",
                 description: errorData.message || "Payment succeeded but order creation failed. Please contact support with your payment confirmation.",
                 variant: "destructive",
               });
-              
+
               // Clean up URL but keep localStorage for support/retry
               window.history.replaceState({}, document.title, window.location.pathname);
               return;
@@ -228,7 +230,7 @@ function CustomerMenuContent() {
 
             // Clear pending order data only after successful creation
             localStorage.removeItem('pendingOrder');
-            
+
             // Clear cart
             setCartItems([]);
 
@@ -236,10 +238,10 @@ function CustomerMenuContent() {
             setLocation(`/receipt/${data.id}`);
           } else {
             console.error('[Payment Return] Payment not successful:', retrievedPaymentIntent?.status);
-            
+
             // Clear stale pending data since payment didn't succeed
             localStorage.removeItem('pendingOrder');
-            
+
             toast({
               title: "Payment Issue",
               description: `Payment status: ${retrievedPaymentIntent?.status}. Please contact support if you were charged.`,
@@ -250,14 +252,14 @@ function CustomerMenuContent() {
           }
         } catch (error) {
           console.error('[Payment Return] Error creating order after redirect:', error);
-          
+
           // Keep pending data for potential retry
           toast({
             title: "Order Failed",
             description: "Payment verification or order creation failed. Please contact support with your payment confirmation.",
             variant: "destructive",
           });
-          
+
           // Clean up URL but keep localStorage for support/retry
           window.history.replaceState({}, document.title, window.location.pathname);
         }
@@ -271,7 +273,8 @@ function CustomerMenuContent() {
   const { data: menuItems = [], isLoading: menuLoading } = useQuery<MenuItem[]>({
     queryKey: ['/api/menu-items', restaurantId],
     queryFn: async () => {
-      const res = await fetch(`/api/menu-items?restaurantId=${restaurantId}`);
+      const apiBaseUrl = (import.meta as any).env.VITE_API_BASE_URL || '';
+      const res = await fetch(`${apiBaseUrl}/api/menu-items?restaurantId=${restaurantId}`);
       if (!res.ok) throw new Error('Failed to fetch menu items');
       return res.json();
     },
@@ -292,7 +295,7 @@ function CustomerMenuContent() {
   const addToCart = (item: MenuItem, quantity: number = 1) => {
     console.log('[CustomerMenu] addToCart called with item:', item);
     console.log('[CustomerMenu] Current cart items:', cartItems);
-    
+
     const cartItem: CartItem = {
       id: item.id,
       name: item.name,
@@ -368,7 +371,7 @@ function CustomerMenuContent() {
               <Skeleton className="h-4 w-1/2 pulse-enhanced" />
             </div>
           </div>
-          
+
           {/* Menu navigation skeleton */}
           <div className="mb-8">
             <div className="flex items-center justify-between mb-4">
@@ -385,7 +388,7 @@ function CustomerMenuContent() {
               ))}
             </div>
           </div>
-          
+
           {/* Menu items skeleton */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {[1, 2, 3, 4, 5, 6].map((i) => (
@@ -582,15 +585,15 @@ function CustomerMenuContent() {
                   sessionStorage.setItem('waiterix-mic-permission-granted', 'false');
                 }
               }
-              
+
               // Mark that user has seen the welcome
               if (restaurantId) {
                 sessionStorage.setItem(`restaurant-${restaurantId}-welcome-seen`, 'true');
               }
-              
+
               // Hide overlay immediately
               setShowWelcomeOverlay(false);
-              
+
               // Trigger AI welcome IMMEDIATELY in the user gesture context (critical for audio unlock)
               // This is non-blocking - overlay closes while welcome plays
               if (floatingAIWaiterRef.current) {
@@ -635,22 +638,23 @@ function CustomerMenuContent() {
 
 export default function CustomerMenu() {
   const { id: restaurantId } = useParams<{ id: string }>();
-  
+
   // Fetch restaurant data for RestaurantProvider
   const { data: restaurant } = useQuery<Restaurant>({
     queryKey: ['/api/public/restaurant', restaurantId],
     queryFn: async () => {
-      const res = await fetch(`/api/public/restaurant/${restaurantId}`);
+      const apiBaseUrl = (import.meta as any).env.VITE_API_BASE_URL || '';
+      const res = await fetch(`${apiBaseUrl}/api/public/restaurant/${restaurantId}`);
       if (!res.ok) throw new Error('Restaurant not found');
       return res.json();
     },
     enabled: !!restaurantId,
   });
-  
+
   // Wrap with RestaurantProvider to sync currency and language
   return (
-    <RestaurantProvider 
-      currencyCode={restaurant?.currencyCode} 
+    <RestaurantProvider
+      currencyCode={restaurant?.currencyCode}
       defaultLanguage={restaurant?.defaultLanguage}
     >
       <CustomerMenuContent />
