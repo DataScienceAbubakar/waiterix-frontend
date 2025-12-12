@@ -1,5 +1,5 @@
 import { RestaurantHeader } from '../RestaurantHeader';
-import restaurantImg from '@/assets/stock_images/restaurant_interior__df0b7770.jpg';
+const restaurantImg = '/assets/stock_images/restaurant_interior__df0b7770.jpg';
 
 export default function RestaurantHeaderExample() {
   return (

@@ -1,7 +1,7 @@
 import { MenuItemDialog } from '../MenuItemDialog';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import burgerImg from '@/assets/stock_images/delicious_gourmet_bu_7d89f757.jpg';
+const burgerImg = '/assets/stock_images/delicious_gourmet_bu_7d89f757.jpg';
 
 export default function MenuItemDialogExample() {
   const [open, setOpen] = useState(false);

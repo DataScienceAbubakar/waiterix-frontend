@@ -1,7 +1,7 @@
 import { CartDrawer } from '../CartDrawer';
 import { useState } from 'react';
-import burgerImg from '@/assets/stock_images/delicious_gourmet_bu_7d89f757.jpg';
-import pastaImg from '@/assets/stock_images/appetizing_pasta_dis_63bd7595.jpg';
+const burgerImg = '/assets/stock_images/delicious_gourmet_bu_7d89f757.jpg';
+const pastaImg = '/assets/stock_images/appetizing_pasta_dis_63bd7595.jpg';
 
 export default function CartDrawerExample() {
   const [items, setItems] = useState([

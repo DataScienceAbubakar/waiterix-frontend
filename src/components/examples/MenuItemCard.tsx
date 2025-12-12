@@ -1,5 +1,5 @@
 import { MenuItemCard } from '../MenuItemCard';
-import burgerImg from '@/assets/stock_images/delicious_gourmet_bu_7d89f757.jpg';
+const burgerImg = '/assets/stock_images/delicious_gourmet_bu_7d89f757.jpg';
 
 export default function MenuItemCardExample() {
   return (
