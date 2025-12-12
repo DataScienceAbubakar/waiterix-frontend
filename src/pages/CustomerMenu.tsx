@@ -500,7 +500,7 @@ function CustomerMenuContent() {
                   name={item.name}
                   description={item.description}
                   price={parseFloat(item.price as any)}
-                  image={item.imageUrl || restaurantImg}
+                  image={item.imageUrl?.startsWith('http') || item.imageUrl?.startsWith('/') ? item.imageUrl : `/assets/stock_images/${item.imageUrl}` || restaurantImg}
                   spiceLevel={item.spiceLevel ? parseInt(item.spiceLevel) : undefined}
                   isVegan={item.isVegan}
                   isVegetarian={item.isVegetarian}
@@ -525,7 +525,7 @@ function CustomerMenuContent() {
             price: parseFloat(selectedItem.price as any),
             spiceLevel: selectedItem.spiceLevel ? parseInt(selectedItem.spiceLevel) : undefined,
             allergens: selectedItem.allergens || [],
-            image: selectedItem.imageUrl || restaurantImg,
+            image: selectedItem.imageUrl?.startsWith('http') || selectedItem.imageUrl?.startsWith('/') ? selectedItem.imageUrl : `/assets/stock_images/${selectedItem.imageUrl}` || restaurantImg,
           }}
           onAddToCart={(quantity) => addToCart(selectedItem, quantity)}
         />

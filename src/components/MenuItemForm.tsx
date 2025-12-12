@@ -98,13 +98,13 @@ export function MenuItemForm({ onSubmit, onCancel, menuItem }: MenuItemFormProps
     try {
       if (result.successful && result.successful.length > 0) {
         const uploadURL = result.successful[0].uploadURL;
-        
+
         if (menuItem?.id) {
           // Updating existing menu item image
           const response = await apiRequest("PUT", `/api/menu-items/${menuItem.id}/image`, {
             imageUrl: uploadURL,
           });
-          
+
           // Read response body exactly once
           let data;
           try {
@@ -113,17 +113,17 @@ export function MenuItemForm({ onSubmit, onCancel, menuItem }: MenuItemFormProps
             // No JSON body (e.g., 204 No Content)
             data = null;
           }
-          
+
           // Now branch on response.ok
           if (!response.ok) {
             const errorMessage = data?.error || data?.message || "Failed to update image";
             throw new Error(errorMessage);
           }
-          
+
           // Success - use parsed data or fall back to uploadURL
           const updatedImageUrl = data?.imageUrl || uploadURL;
           setImageUrl(updatedImageUrl);
-          
+
           toast({
             title: "Image Updated",
             description: "Menu item image has been successfully updated",
@@ -131,7 +131,7 @@ export function MenuItemForm({ onSubmit, onCancel, menuItem }: MenuItemFormProps
         } else {
           // New menu item
           setImageUrl(uploadURL);
-          
+
           toast({
             title: "Image Uploaded",
             description: "Image uploaded successfully. Save the item to complete.",
@@ -155,7 +155,7 @@ export function MenuItemForm({ onSubmit, onCancel, menuItem }: MenuItemFormProps
     const allergensArray = data.allergens
       ? data.allergens.split(',').map(a => a.trim()).filter(Boolean)
       : [];
-    
+
     onSubmit({
       ...data,
       allergens: allergensArray as any,
@@ -203,9 +203,9 @@ export function MenuItemForm({ onSubmit, onCancel, menuItem }: MenuItemFormProps
           <div className="space-y-4">
             {imageUrl && (
               <div className="relative w-full max-w-xs">
-                <img 
-                  src={imageUrl} 
-                  alt="Menu item" 
+                <img
+                  src={imageUrl?.startsWith('http') || imageUrl?.startsWith('/') ? imageUrl : `/assets/stock_images/${imageUrl}`}
+                  alt="Menu item"
                   className="w-full h-48 object-cover rounded-md"
                   data-testid="img-menu-item-preview"
                 />
