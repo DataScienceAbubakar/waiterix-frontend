@@ -9,28 +9,47 @@ import { useToast } from "@/hooks/use-toast";
 import { useEffect, useRef, useState } from "react";
 import type { AssistanceRequestWithTable } from "@/shared/schema";
 
-// Audio notification
-const playNotificationSound = () => {
-  const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+// Audio notification - lazily initialized to avoid autoplay restrictions
+let audioContext: AudioContext | null = null;
 
-  // Create two-tone chime
-  const oscillator1 = audioContext.createOscillator();
-  const oscillator2 = audioContext.createOscillator();
-  const gainNode = audioContext.createGain();
+const getAudioContext = () => {
+  if (!audioContext) {
+    audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+  }
+  return audioContext;
+};
 
-  oscillator1.connect(gainNode);
-  oscillator2.connect(gainNode);
-  gainNode.connect(audioContext.destination);
+const playNotificationSound = async () => {
+  try {
+    const ctx = getAudioContext();
 
-  oscillator1.frequency.value = 800; // First tone
-  oscillator2.frequency.value = 1000; // Second tone
-  gainNode.gain.value = 0.3;
+    // Resume AudioContext if it's suspended (browser autoplay restriction)
+    if (ctx.state === 'suspended') {
+      await ctx.resume();
+    }
 
-  const now = audioContext.currentTime;
-  oscillator1.start(now);
-  oscillator1.stop(now + 0.2);
-  oscillator2.start(now + 0.2);
-  oscillator2.stop(now + 0.4);
+    // Create two-tone chime
+    const oscillator1 = ctx.createOscillator();
+    const oscillator2 = ctx.createOscillator();
+    const gainNode = ctx.createGain();
+
+    oscillator1.connect(gainNode);
+    oscillator2.connect(gainNode);
+    gainNode.connect(ctx.destination);
+
+    oscillator1.frequency.value = 800; // First tone
+    oscillator2.frequency.value = 1000; // Second tone
+    gainNode.gain.value = 0.3;
+
+    const now = ctx.currentTime;
+    oscillator1.start(now);
+    oscillator1.stop(now + 0.2);
+    oscillator2.start(now + 0.2);
+    oscillator2.stop(now + 0.4);
+  } catch (error) {
+    // Silently fail if audio can't play (e.g., user hasn't interacted with page yet)
+    console.debug('Audio notification skipped:', error);
+  }
 };
 
 export function AssistanceTab() {
@@ -53,6 +72,29 @@ export function AssistanceTab() {
     queryKey: [queryUrl],
     refetchInterval: 10000, // Poll every 10 seconds
   });
+
+  // Initialize AudioContext on first user interaction (fixes autoplay restrictions)
+  useEffect(() => {
+    const initAudio = () => {
+      const ctx = getAudioContext();
+      if (ctx.state === 'suspended') {
+        ctx.resume().catch(() => {
+          // Ignore errors - will try again on next interaction
+        });
+      }
+      // Remove listener after first interaction
+      document.removeEventListener('click', initAudio);
+      document.removeEventListener('touchstart', initAudio);
+    };
+
+    document.addEventListener('click', initAudio);
+    document.addEventListener('touchstart', initAudio);
+
+    return () => {
+      document.removeEventListener('click', initAudio);
+      document.removeEventListener('touchstart', initAudio);
+    };
+  }, []);
 
   // WebSocket connection for real-time updates
   useEffect(() => {
