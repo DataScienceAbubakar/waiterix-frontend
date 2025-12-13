@@ -105,6 +105,11 @@ export const FloatingAIWaiter = forwardRef<FloatingAIWaiterRef, FloatingAIWaiter
     useEffect(() => {
       if (typeof window !== 'undefined') {
         audioRef.current = new Audio();
+        audioRef.current.volume = 1.0; // Force max volume
+        // @ts-ignore
+        audioRef.current.playsInline = true; // Help with mobile
+        audioRef.current.preload = 'auto';
+
         audioRef.current.onplay = () => {
           console.log('Audio started playing');
           // Status is now set before play() is called, not here
